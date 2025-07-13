@@ -1,0 +1,134 @@
+{
+  "resourceType": "StructureDefinition",
+  "url": "https://digit.org/fhir/StructureDefinition/HCMSupplyDelivery",
+  "name": "HCMSupplyDelivery",
+  "status": "draft",
+  "fhirVersion": "5.0.0",
+  "kind": "resource",
+  "abstract": false,
+  "type": "SupplyDelivery",
+  "baseDefinition": "http://hl7.org/fhir/StructureDefinition/SupplyDelivery",
+  "derivation": "constraint",
+  "differential": {
+    "element": [
+      {
+        "id": "SupplyDelivery.extension",
+        "path": "SupplyDelivery.extension",
+        "min": 3
+      },
+      {
+        "id": "SupplyDelivery.extension:supplyDeliveryStage",
+        "path": "SupplyDelivery.extension",
+        "sliceName": "supplyDeliveryStage",
+        "min": 1,
+        "max": "1",
+        "type": [
+          {
+            "code": "Extension",
+            "profile": [
+              "https://digit.org/fhir/StructureDefinition/SupplyDeliveryStage"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "SupplyDelivery.extension:eventLocation",
+        "path": "SupplyDelivery.extension",
+        "sliceName": "eventLocation",
+        "min": 1,
+        "type": [
+          {
+            "code": "Extension",
+            "profile": [
+              "http://hl7.org/fhir/StructureDefinition/event-location"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "SupplyDelivery.extension:supplydeliverysenderlocation",
+        "path": "SupplyDelivery.extension",
+        "sliceName": "supplydeliverysenderlocation",
+        "min": 1,
+        "max": "1",
+        "type": [
+          {
+            "code": "Extension",
+            "profile": [
+              "https://digit.org/fhir/StructureDefinition/supplydelivery-sender-location"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "SupplyDelivery.identifier",
+        "path": "SupplyDelivery.identifier",
+        "slicing": {
+          "discriminator": [
+            {
+              "type": "value",
+              "path": "system"
+            }
+          ],
+          "rules": "open"
+        },
+        "min": 1
+      },
+      {
+        "id": "SupplyDelivery.identifier:waybill",
+        "path": "SupplyDelivery.identifier",
+        "sliceName": "waybill",
+        "min": 1,
+        "max": "1"
+      },
+      {
+        "id": "SupplyDelivery.identifier:waybill.system",
+        "path": "SupplyDelivery.identifier.system",
+        "fixedUri": "http://digit.org/fhir/identifier/waybill"
+      },
+      {
+        "id": "SupplyDelivery.status",
+        "path": "SupplyDelivery.status",
+        "fixedCode": "completed"
+      },
+      {
+        "id": "SupplyDelivery.suppliedItem.extension",
+        "path": "SupplyDelivery.suppliedItem.extension",
+        "min": 1
+      },
+      {
+        "id": "SupplyDelivery.suppliedItem.extension:supplyDeliverCondition",
+        "path": "SupplyDelivery.suppliedItem.extension",
+        "sliceName": "supplyDeliverCondition",
+        "min": 1,
+        "max": "1",
+        "type": [
+          {
+            "code": "Extension",
+            "profile": [
+              "https://digit.org/fhir/StructureDefinition/supplydelivery-condition"
+            ]
+          }
+        ],
+        "isModifier": false
+      },
+      {
+        "id": "SupplyDelivery.suppliedItem.item[x]",
+        "path": "SupplyDelivery.suppliedItem.item[x]",
+        "type": [
+          {
+            "code": "Reference",
+            "targetProfile": [
+              "https://digit.org/fhir/StructureDefinition/HCMInventoryReport",
+              "http://hl7.org/fhir/StructureDefinition/Substance",
+              "http://hl7.org/fhir/StructureDefinition/Device",
+              "http://hl7.org/fhir/StructureDefinition/BiologicallyDerivedProduct",
+              "http://hl7.org/fhir/StructureDefinition/NutritionProduct",
+              "http://hl7.org/fhir/StructureDefinition/InventoryItem"
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
