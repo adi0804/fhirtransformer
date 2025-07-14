@@ -1,0 +1,44 @@
+{
+  "resourceType": "StructureDefinition",
+  "url": "https://digit.org/fhir/StructureDefinition/supplydelivery-sender-location",
+  "name": "Supplydeliverysenderlocation",
+  "status": "draft",
+  "fhirVersion": "5.0.0",
+  "kind": "complex-type",
+  "abstract": false,
+  "context": [
+    {
+      "type": "element",
+      "expression": "SupplyDelivery"
+    }
+  ],
+  "type": "Extension",
+  "baseDefinition": "http://hl7.org/fhir/StructureDefinition/Extension",
+  "derivation": "constraint",
+  "differential": {
+    "element": [
+      {
+        "id": "Extension.extension",
+        "path": "Extension.extension",
+        "max": "0"
+      },
+      {
+        "id": "Extension.url",
+        "path": "Extension.url",
+        "fixedUri": "https://digit.org/fhir/StructureDefinition/supplydelivery-sender-location"
+      },
+      {
+        "id": "Extension.value[x]",
+        "path": "Extension.value[x]",
+        "type": [
+          {
+            "code": "Reference",
+            "targetProfile": [
+              "https://digit.org/fhir/StructureDefinition/DIGITHCMFacilityLocation"
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

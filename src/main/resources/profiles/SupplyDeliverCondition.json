@@ -1,0 +1,46 @@
+{
+  "resourceType": "StructureDefinition",
+  "url": "https://digit.org/fhir/StructureDefinition/supplydelivery-condition",
+  "name": "SupplyDeliverCondition",
+  "status": "draft",
+  "fhirVersion": "5.0.0",
+  "kind": "complex-type",
+  "abstract": false,
+  "context": [
+    {
+      "type": "element",
+      "expression": "SupplyDelivery.suppliedItem"
+    }
+  ],
+  "type": "Extension",
+  "baseDefinition": "http://hl7.org/fhir/StructureDefinition/Extension",
+  "derivation": "constraint",
+  "differential": {
+    "element": [
+      {
+        "id": "Extension.extension",
+        "path": "Extension.extension",
+        "max": "0"
+      },
+      {
+        "id": "Extension.url",
+        "path": "Extension.url",
+        "fixedUri": "https://digit.org/fhir/StructureDefinition/supplydelivery-condition"
+      },
+      {
+        "id": "Extension.value[x]",
+        "path": "Extension.value[x]",
+        "type": [
+          {
+            "code": "CodeableConcept"
+          }
+        ]
+      },
+      {
+        "id": "Extension.value[x].coding.system",
+        "path": "Extension.value[x].coding.system",
+        "fixedUri": "https://digit.org/fhir/CodeSystem/transactionReason"
+      }
+    ]
+  }
+}

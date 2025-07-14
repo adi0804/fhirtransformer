@@ -13,6 +13,8 @@ import org.hl7.fhir.common.hapi.validation.support.ValidationSupportChain;
 import org.hl7.fhir.common.hapi.validation.validator.FhirInstanceValidator;
 import org.hl7.fhir.r5.model.StructureDefinition;
 import org.hl7.fhir.instance.model.api.IBaseResource;
+import org.hl7.fhir.r5.model.CodeSystem;
+import org.hl7.fhir.r5.model.ValueSet;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -61,6 +63,13 @@ public class CustomFHIRValidator {
                             StructureDefinition sd = (StructureDefinition) resource;
                             support.addStructureDefinition(sd);
                             System.out.println("Loaded profile: " + sd.getUrl());
+                        }
+                        else if (resource instanceof CodeSystem cs) {
+                            support.addCodeSystem(cs);
+                            System.out.println("Loaded CodeSystem: " + cs.getUrl());
+                        } else if (resource instanceof ValueSet vs) {
+                            support.addValueSet(vs);
+                            System.out.println("Loaded ValueSet: " + vs.getUrl());
                         }
                     }
                 }
