@@ -4,9 +4,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -21,8 +23,18 @@ public class FhirTransformerRepository {
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
 
+    @Autowired
+    private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+
+
     @Value("${get.facilities}")
     private String getFacilitiesQuery;
+
+    @Value("${get.boundaries}")
+    private String getBoundariesQuery;
+
+    @Value("${get.totalMatchingRecords}")
+    private String getTotalMatchingRecordsQuery;
 
     public List<Map<String, Object>> getFacilities(String facilityId) {
         String cacheKey = "facility_" + facilityId;
@@ -41,6 +53,33 @@ public class FhirTransformerRepository {
         return facility;
     }
 
+    public List<Map<String, Object>> getBoundaries(String afterId, String lastModifiedDate, int count) {
+        StringBuilder sql = new StringBuilder("SELECT * FROM public.boundary WHERE 1=1");
+        Map<String, Object> params = new HashMap<>();
+
+        if (afterId != null && !afterId.isEmpty()) {
+            sql.append(" AND id > :afterId");
+            params.put("afterId", afterId);
+        }
+        if (lastModifiedDate != null && !lastModifiedDate.isEmpty()) {
+            sql.append(" AND cast(TO_TIMESTAMP(lastmodifiedtime/1000) as date) > :lastModifiedDate");
+            params.put("lastModifiedDate", lastModifiedDate);
+        }
+        sql.append(" ORDER BY id ASC LIMIT :count");
+        params.put("count", count);
+
+        System.out.println("SQL QUERY: " + sql);
+        List<Map<String, Object>> boundaries = namedParameterJdbcTemplate.queryForList(sql.toString(), params);
+        boundaries = convertPgObjectToString(boundaries);
+        System.out.println("boundaries fetched: " + boundaries);
+        return boundaries;
+    }
+
+    public int totalMatchingRecords(String lastModifiedDate) {
+        Map<String, Object> params = new HashMap<>();
+        params.put("lastModifiedDate", lastModifiedDate);
+        return namedParameterJdbcTemplate.queryForObject(getTotalMatchingRecordsQuery, params, Integer.class);
+    }
 
 
     private List<Map<String, Object>> convertPgObjectToString(List<Map<String, Object>> data) {

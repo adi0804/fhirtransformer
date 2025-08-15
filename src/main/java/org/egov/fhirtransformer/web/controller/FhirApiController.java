@@ -31,4 +31,19 @@ public class FhirApiController {
     public List<Map<String, Object>> getFacilities(@RequestParam String facilityId) {
         return service.getFacilities(facilityId);
     }
+
+    @GetMapping("/getBoundaries")
+    public ResponseEntity<String> getBoundaries(@RequestParam(name = "_afterId", required = false) String afterId,
+                                                @RequestParam(name = "_lastmodifiedtime", required = false) String lastModifiedStr,
+                                                @RequestParam(name = "_count", defaultValue = "10") int count) {
+
+        String lastModifiedDate = null;
+        if (lastModifiedStr != null && !lastModifiedStr.isEmpty()) {
+            lastModifiedDate = lastModifiedStr;
+        }
+
+        String boundaries = service.getBoundaries(afterId, lastModifiedDate, count);
+        return ResponseEntity.ok(boundaries);
+    }
+
 }
