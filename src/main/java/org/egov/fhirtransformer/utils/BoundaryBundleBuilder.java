@@ -8,7 +8,7 @@ public class BoundaryBundleBuilder {
     public static Bundle buildLocationBundle(List<Location> locations, String lastModifiedTime, int count, String afterId, int total) {
 
         Bundle bundle = new Bundle();
-        bundle.setType(Bundle.BundleType.SEARCHSET);
+        bundle.setType(Bundle.BundleType.COLLECTION);
         bundle.setTimestamp(new Date());
         bundle.setTotal(total);
         bundle.setId(UUID.randomUUID().toString());

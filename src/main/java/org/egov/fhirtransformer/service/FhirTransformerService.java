@@ -1,7 +1,7 @@
 package org.egov.fhirtransformer.service;
 
 import ca.uhn.fhir.context.FhirContext;
-import org.egov.fhirtransformer.mapper.BoundaryMapper;
+import org.egov.fhirtransformer.fhirBuilder.DIGITHCMBoundaryMapper;
 import org.egov.fhirtransformer.repository.FhirTransformerRepository;
 import org.egov.fhirtransformer.utils.BoundaryBundleBuilder;
 import org.egov.fhirtransformer.validator.CustomFHIRValidator;
@@ -43,9 +43,9 @@ public class FhirTransformerService {
 //        if (cachedJson != null) {
 //            return cachedJson;
 //        }
-        List<Map<String, Object>> rows = repository.getBoundaries(afterId, lastModifiedDate, count);
+        List<Map<String, Object>> rows = repository.getLocation(afterId, lastModifiedDate, count);
         List<Location> locations = rows.stream()
-                .map(BoundaryMapper::mapToLocation)
+                .map(DIGITHCMBoundaryMapper::buildLocation)
                 .collect(Collectors.toList());
 
         int total = repository.totalMatchingRecords(lastModifiedDate);
