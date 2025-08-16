@@ -11,6 +11,8 @@ public class Constants {
     public static final String LOCATION_TYPE_JURISDICTION = "jurisdiction";
     public static final String FACILITY_CACHE_KEY_PREFIX = "facility_";
     public static final long CACHE_TTL_MINUTES = 1;
+    public static final String PARAM_BOUNDARY_LOCATION="DIGITHCMBoundary";
+    public static final String PARAM_FACILITYBOUNDARY_LOCATION="DIGITHCMFacilityLocation";
 
 
     // --- Database Column Keys ---
@@ -18,5 +20,6 @@ public class Constants {
     public static final String COL_CODE = "code";
     public static final String COL_LAST_MODIFIED = "lastmodifiedtime";
     public static final String COL_BOUNDARY_TYPE = "boundarytype";
+
 
 }

@@ -53,7 +53,7 @@ public class FhirTransformerRepository {
     }
 
     public List<Map<String, Object>> getLocation(String afterId, String lastModifiedDate, int count) {
-        StringBuilder sql = new StringBuilder("SELECT * FROM public.boundary_relationship WHERE 1=1");
+        StringBuilder sql = new StringBuilder(getBoundariesQuery);
         Map<String, Object> params = new HashMap<>();
 
         if (afterId != null && !afterId.isEmpty()) {
@@ -61,23 +61,30 @@ public class FhirTransformerRepository {
             params.put("afterId", afterId);
         }
         if (lastModifiedDate != null && !lastModifiedDate.isEmpty()) {
-            sql.append(" AND cast(TO_TIMESTAMP(lastmodifiedtime/1000) as date) > :lastModifiedDate");
+            sql.append(" AND cast(TO_TIMESTAMP(lastmodifiedtime/1000) as date) >= cast(:lastModifiedDate as date)");
             params.put("lastModifiedDate", lastModifiedDate);
         }
         sql.append(" ORDER BY id ASC LIMIT :count");
         params.put("count", count);
-
-        System.out.println("SQL QUERY: " + sql);
         List<Map<String, Object>> boundaries = namedParameterJdbcTemplate.queryForList(sql.toString(), params);
         boundaries = convertPgObjectToString(boundaries);
-        System.out.println("boundaries fetched: " + boundaries);
+//        System.out.println("Boundaries fetched: " + boundaries);
         return boundaries;
     }
 
-    public int totalMatchingRecords(String lastModifiedDate) {
+    public int totalMatchingRecords(String afterId, String lastModifiedDate) {
+        StringBuilder sql = new StringBuilder(getTotalMatchingRecordsQuery);
         Map<String, Object> params = new HashMap<>();
-        params.put("lastModifiedDate", lastModifiedDate);
-        return namedParameterJdbcTemplate.queryForObject(getTotalMatchingRecordsQuery, params, Integer.class);
+
+        if (afterId != null && !afterId.isEmpty()) {
+            sql.append(" AND id > :afterId");
+            params.put("afterId", afterId);
+        }
+        if (lastModifiedDate != null && !lastModifiedDate.isEmpty()) {
+            sql.append(" AND cast(TO_TIMESTAMP(lastmodifiedtime/1000) as date) >= cast(:lastModifiedDate as date)");
+            params.put("lastModifiedDate", lastModifiedDate);
+        }
+        return namedParameterJdbcTemplate.queryForObject(sql.toString(), params, Integer.class);
     }
 
 

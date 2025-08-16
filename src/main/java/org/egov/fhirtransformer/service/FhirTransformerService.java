@@ -48,7 +48,7 @@ public class FhirTransformerService {
                 .map(DIGITHCMBoundaryMapper::buildLocation)
                 .collect(Collectors.toList());
 
-        int total = repository.totalMatchingRecords(lastModifiedDate);
+        int total = repository.totalMatchingRecords(afterId, lastModifiedDate);
         Bundle bundle = BoundaryBundleBuilder.buildLocationBundle(locations, lastModifiedDate, count, afterId, total);
 
         String json = ctx.newJsonParser().encodeResourceToString(bundle);
