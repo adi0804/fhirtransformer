@@ -11,14 +11,14 @@ public class BoundaryBundleBuilder {
     public static Bundle buildLocationBundle(List<Location> locations, String lastModifiedTime, int count, String afterId, int total) {
 
         Bundle bundle = new Bundle();
-        bundle.setType(Bundle.BundleType.COLLECTION);
+        bundle.setType(Bundle.BundleType.SEARCHSET);
         bundle.setTimestamp(new Date());
         bundle.setTotal(total);
         bundle.setId(UUID.randomUUID().toString());
         for (Location loc : locations) {
             bundle.addEntry()
                     .setResource(loc)
-                    .setFullUrl("Location/" + loc.getId());
+                    .setFullUrl("urn:uuid:" + loc.getId());
         }
 
         String baseUrl = "/getLocations?_profile="+ Constants.PARAM_BOUNDARY_LOCATION + "&_count=" + count;

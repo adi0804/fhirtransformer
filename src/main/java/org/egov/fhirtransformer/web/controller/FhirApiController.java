@@ -1,11 +1,15 @@
 package org.egov.fhirtransformer.web.controller;
 
 
+import org.egov.common.models.core.URLParams;
+import org.egov.common.models.facility.FacilityBulkResponse;
+import org.egov.common.models.facility.FacilitySearchRequest;
 import org.egov.fhirtransformer.service.FhirTransformerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.egov.fhirtransformer.common.Constants;
+import jakarta.validation.Valid;
 
 import java.util.List;
 import java.util.Map;
@@ -31,6 +35,16 @@ public class FhirApiController {
     @GetMapping("/getFacilities")
     public List<Map<String, Object>> getFacilities(@RequestParam String facilityId) {
         return service.getFacilities(facilityId);
+    }
+
+    @PostMapping("/fetchAllFacilities")
+    public ResponseEntity<String> fetchAllFacilities(@Valid @ModelAttribute URLParams urlParams
+                                                    ,@Valid @RequestBody FacilitySearchRequest request
+                                                    ) {
+        FacilityBulkResponse response = service.fetchAllFacilities(urlParams, request);
+        if (response == null || response.getFacilities() == null) return ResponseEntity.ok("No facilities found.");
+        String facilities = service.convertFacilitiesToFHIR(response.getFacilities(), urlParams, response.getTotalCount().intValue());
+        return ResponseEntity.ok(facilities);
     }
 
     @GetMapping("/getLocations")
