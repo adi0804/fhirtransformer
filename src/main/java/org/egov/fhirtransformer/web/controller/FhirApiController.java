@@ -4,6 +4,9 @@ package org.egov.fhirtransformer.web.controller;
 import org.egov.common.models.core.URLParams;
 import org.egov.common.models.facility.FacilityBulkResponse;
 import org.egov.common.models.facility.FacilitySearchRequest;
+import org.egov.common.models.product.ProductVariant;
+import org.egov.common.models.product.ProductVariantResponse;
+import org.egov.common.models.product.ProductVariantSearchRequest;
 import org.egov.fhirtransformer.service.FhirTransformerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -45,6 +48,17 @@ public class FhirApiController {
         if (response == null || response.getFacilities() == null) return ResponseEntity.ok("No facilities found.");
         String facilities = service.convertFacilitiesToFHIR(response.getFacilities(), urlParams, response.getTotalCount().intValue());
         return ResponseEntity.ok(facilities);
+    }
+
+    @PostMapping("/fetchAllProductVariants")
+    public  ResponseEntity<String> fetchAllProductVariants(@Valid @ModelAttribute URLParams urlParams
+                                                           ,@Valid @RequestBody ProductVariantSearchRequest request
+                                                          ) {
+        ProductVariantResponse response = service.fetchAllProductVariants(urlParams, request);
+        if (response == null || response.getProductVariant() == null) return ResponseEntity.ok("No facilities found.");
+//        String productVariants = service.convertFacilitiesToFHIR(response.getProductVariant(), urlParams, response.getTotalCount().intValue());
+        String productVariants = service.convertProductVariantsToFHIR(response.getProductVariant(), urlParams, 10);
+        return ResponseEntity.ok(productVariants);
     }
 
     @GetMapping("/getLocations")

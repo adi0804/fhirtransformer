@@ -5,13 +5,19 @@ import org.egov.common.models.core.URLParams;
 import org.egov.common.models.facility.Facility;
 import org.egov.common.models.facility.FacilityBulkResponse;
 import org.egov.common.models.facility.FacilitySearchRequest;
+import org.egov.common.models.product.ProductVariant;
+import org.egov.common.models.product.ProductVariantResponse;
+import org.egov.common.models.product.ProductVariantSearchRequest;
 import org.egov.fhirtransformer.fhirBuilder.DIGITHCMBoundaryMapper;
 import org.egov.fhirtransformer.fhirBuilder.DIGITHCMFacilityMapper;
+import org.egov.fhirtransformer.fhirBuilder.DIGITHCMProductVariantMapper;
 import org.egov.fhirtransformer.repository.FhirTransformerRepository;
 import org.egov.fhirtransformer.utils.BoundaryBundleBuilder;
 import org.egov.fhirtransformer.utils.FacilityBundleBuilder;
+import org.egov.fhirtransformer.utils.InventoryItemBundleBuilder;
 import org.egov.fhirtransformer.validator.CustomFHIRValidator;
 import org.hl7.fhir.r5.model.Bundle;
+import org.hl7.fhir.r5.model.InventoryItem;
 import org.hl7.fhir.r5.model.Location;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -43,6 +49,9 @@ public class FhirTransformerService {
 
     @Value("${facility.search.url}")
     private String facilityUrl;
+
+    @Value("${productVariant.search.url}")
+    private String productVariantUrl;
 
     private final FhirContext ctx = FhirContext.forR5();
 
@@ -84,6 +93,38 @@ public class FhirTransformerService {
                 FacilityBulkResponse.class
         );
         return response.getBody();
+    }
+
+    public ProductVariantResponse fetchAllProductVariants(URLParams urlParams, ProductVariantSearchRequest productVariantSearchRequest) {
+        URI uri = UriComponentsBuilder.fromHttpUrl(productVariantUrl)
+                .queryParam("limit", urlParams.getLimit())
+                .queryParam("offset", urlParams.getOffset())
+                .queryParam("tenantId", urlParams.getTenantId())
+                .build().toUri();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<ProductVariantSearchRequest> entity = new HttpEntity<>(productVariantSearchRequest, headers);
+
+        ResponseEntity<ProductVariantResponse> response = restTemplate.exchange(
+                uri,
+                HttpMethod.POST,
+                entity,
+                ProductVariantResponse.class
+        );
+        System.out.println("Response: " + response.getBody());
+        return response.getBody();
+    }
+
+    public String convertProductVariantsToFHIR(List<ProductVariant> productVariants, URLParams urlParams, Integer totalCount) {
+        List<InventoryItem> inventoryItems = productVariants.stream()
+                .map(DIGITHCMProductVariantMapper::buildInventoryFromProductVariant)
+                .collect(Collectors.toList());
+
+        Bundle bundle = InventoryItemBundleBuilder.buildInventoryItemBundle(inventoryItems, urlParams, totalCount);
+
+        String json = ctx.newJsonParser().encodeResourceToString(bundle);
+        return json;
     }
 
     public String getBoundaries(String afterId, String lastModifiedDate, int count) {
