@@ -130,7 +130,7 @@ public class DIGITHCMProductVariantMapper {
         // Adding baseUnit
         inventoryItem.setBaseUnit(new CodeableConcept().addCoding(
                 new Coding()
-                        .setSystem(Constants.UOM_SYSTEM_PV)
+                        .setSystem(Constants.UOM_SYSTEM)
                         .setCode("bale")
                         .setDisplay("Bale")));
         // Adding NetContent

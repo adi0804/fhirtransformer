@@ -7,6 +7,8 @@ import org.egov.common.models.facility.FacilitySearchRequest;
 import org.egov.common.models.product.ProductVariant;
 import org.egov.common.models.product.ProductVariantResponse;
 import org.egov.common.models.product.ProductVariantSearchRequest;
+import org.egov.common.models.stock.*;
+import org.egov.fhirtransformer.service.DataIntegrationService;
 import org.egov.fhirtransformer.service.FhirTransformerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +24,10 @@ import java.util.Map;
 public class FhirApiController {
 
     @Autowired
-    private FhirTransformerService service;
+    private FhirTransformerService ftService;
+
+    @Autowired
+    private DataIntegrationService diService;
 
     @GetMapping("/health")
     public ResponseEntity<String> healthCheck() {
@@ -31,22 +36,22 @@ public class FhirApiController {
 
     @PostMapping("/validate")
     public ResponseEntity<String> validateFHIR(@RequestBody String fhirJson) {
-        boolean isValid = service.validateFHIRResource(fhirJson);
+        boolean isValid = ftService.validateFHIRResource(fhirJson);
         return ResponseEntity.ok(isValid ? "Valid FHIR resource" : "Invalid FHIR resource");
     }
 
-    @GetMapping("/getFacilities")
-    public List<Map<String, Object>> getFacilities(@RequestParam String facilityId) {
-        return service.getFacilities(facilityId);
-    }
+//    @GetMapping("/getFacilities")
+//    public List<Map<String, Object>> getFacilities(@RequestParam String facilityId) {
+//        return ftService.getFacilities(facilityId);
+//    }
 
     @PostMapping("/fetchAllFacilities")
     public ResponseEntity<String> fetchAllFacilities(@Valid @ModelAttribute URLParams urlParams
                                                     ,@Valid @RequestBody FacilitySearchRequest request
                                                     ) {
-        FacilityBulkResponse response = service.fetchAllFacilities(urlParams, request);
+        FacilityBulkResponse response = diService.fetchAllFacilities(urlParams, request);
         if (response == null || response.getFacilities() == null) return ResponseEntity.ok("No facilities found.");
-        String facilities = service.convertFacilitiesToFHIR(response.getFacilities(), urlParams, response.getTotalCount().intValue());
+        String facilities = ftService.convertFacilitiesToFHIR(response.getFacilities(), urlParams, response.getTotalCount().intValue());
         return ResponseEntity.ok(facilities);
     }
 
@@ -54,10 +59,10 @@ public class FhirApiController {
     public  ResponseEntity<String> fetchAllProductVariants(@Valid @ModelAttribute URLParams urlParams
                                                            ,@Valid @RequestBody ProductVariantSearchRequest request
                                                           ) {
-        ProductVariantResponse response = service.fetchAllProductVariants(urlParams, request);
+        ProductVariantResponse response = diService.fetchAllProductVariants(urlParams, request);
         if (response == null || response.getProductVariant() == null) return ResponseEntity.ok("No facilities found.");
 //        String productVariants = service.convertFacilitiesToFHIR(response.getProductVariant(), urlParams, response.getTotalCount().intValue());
-        String productVariants = service.convertProductVariantsToFHIR(response.getProductVariant(), urlParams, 10);
+        String productVariants = ftService.convertProductVariantsToFHIR(response.getProductVariant(), urlParams, 10);
         return ResponseEntity.ok(productVariants);
     }
 
@@ -78,8 +83,35 @@ public class FhirApiController {
             }
             lastModifiedDate = lastModifiedStr;
         }
-        String boundaries = service.getBoundaries(afterId, lastModifiedDate, count);
+        String boundaries = ftService.getBoundaries(afterId, lastModifiedDate, count);
         return ResponseEntity.ok(boundaries);
+    }
+
+    @PostMapping("/fetchAllStocks")
+    public ResponseEntity<String> fetchAllStocks(@Valid @ModelAttribute URLParams urlParams
+            ,@Valid @RequestBody StockSearchRequest stockRequest) {
+
+        StockBulkResponse response = diService.fetchAllStocks(urlParams, stockRequest);
+        System.out.println(response.getStock());
+        if (response == null || response.getStock() == null)
+            return ResponseEntity.ok("No Stock found..!");
+        String stock = ftService.convertStocksToFHIR(response.getStock(),
+                urlParams, response.getTotalCount().intValue());
+        return ResponseEntity.ok(stock);
+    }
+
+
+    @PostMapping("/fetchAllStockReconciliation")
+    public ResponseEntity<String> fetchAllStockReconciliation(@Valid @ModelAttribute URLParams urlParams,
+                                                 @Valid @RequestBody StockReconciliationSearchRequest stockReconciliationSearchRequest) {
+
+        StockReconciliationBulkResponse response = diService.fetchAllStockReconciliation(urlParams, stockReconciliationSearchRequest);
+        System.out.println(response.getStockReconciliation());
+        if (response == null || response.getStockReconciliation() == null)
+            return ResponseEntity.ok("No Stock Reconciliation found..!");
+        String stockReconciliation = ftService.convertStocksReconciliationToFHIR(response.getStockReconciliation(),
+                urlParams, response.getTotalCount().intValue());
+        return ResponseEntity.ok(stockReconciliation);
     }
 
 }
