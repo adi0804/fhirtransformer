@@ -16,6 +16,7 @@ public class DIGITHCMStockMapper {
     public static SupplyDelivery buildSupplyDeliveryFromStock(Stock stock) {
 
         SupplyDelivery supplyDelivery = new SupplyDelivery();
+        supplyDelivery.setId(stock.getId());
         Identifier identifier = new Identifier()
                 .setSystem(Constants.IDENTIFIER_SYSTEM_WAYBILL)
                 .setValue(stock.getWayBillNumber());
@@ -84,6 +85,7 @@ public class DIGITHCMStockMapper {
 
         InventoryReport inventoryReport = new InventoryReport();
 
+        inventoryReport.setId(stockReconciliation.getId());
         inventoryReport.setStatus(InventoryReport.InventoryReportStatus.ACTIVE);
         inventoryReport.setCountType(InventoryReport.InventoryCountType.SNAPSHOT);
 
