@@ -1,10 +1,11 @@
 package org.egov.fhirtransformer.web.controller;
 
 
+import digit.web.models.BoundarySearchResponse;
+import org.egov.common.contract.request.RequestInfo;
 import org.egov.common.models.core.URLParams;
 import org.egov.common.models.facility.FacilityBulkResponse;
 import org.egov.common.models.facility.FacilitySearchRequest;
-import org.egov.common.models.product.ProductVariant;
 import org.egov.common.models.product.ProductVariantResponse;
 import org.egov.common.models.product.ProductVariantSearchRequest;
 import org.egov.common.models.stock.*;
@@ -15,9 +16,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.egov.fhirtransformer.common.Constants;
 import jakarta.validation.Valid;
+import digit.web.models.BoundaryRelationshipSearchCriteria;
 
-import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/fhir-api")
@@ -66,27 +66,6 @@ public class FhirApiController {
         return ResponseEntity.ok(productVariants);
     }
 
-    @GetMapping("/getLocations")
-    public ResponseEntity<String> getBoundaries(@RequestParam(name = "_profile", required = true) String profile,
-                                                @RequestParam(name = "_afterId", required = false) String afterId,
-                                                @RequestParam(name = "_lastmodifiedtime", required = false) String lastModifiedStr,
-                                                @RequestParam(name = "_count", defaultValue = "10") int count) {
-
-        if (profile == null || profile.isEmpty() || (!profile.equalsIgnoreCase(Constants.PARAM_BOUNDARY_LOCATION) && !profile.equalsIgnoreCase(Constants.PARAM_FACILITYBOUNDARY_LOCATION))) {
-            return ResponseEntity.badRequest().body("Invalid or missing _profile parameter");
-        }
-
-        String lastModifiedDate = null;
-        if (lastModifiedStr != null && !lastModifiedStr.isEmpty()) {
-            if (lastModifiedStr.startsWith("gt")) {
-                lastModifiedStr = lastModifiedStr.substring(2);
-            }
-            lastModifiedDate = lastModifiedStr;
-        }
-        String boundaries = ftService.getBoundaries(afterId, lastModifiedDate, count);
-        return ResponseEntity.ok(boundaries);
-    }
-
     @PostMapping("/fetchAllStocks")
     public ResponseEntity<String> fetchAllStocks(@Valid @ModelAttribute URLParams urlParams
             ,@Valid @RequestBody StockSearchRequest stockRequest) {
@@ -112,6 +91,16 @@ public class FhirApiController {
         String stockReconciliation = ftService.convertStocksReconciliationToFHIR(response.getStockReconciliation(),
                 urlParams, response.getTotalCount().intValue());
         return ResponseEntity.ok(stockReconciliation);
+    }
+
+    @PostMapping("/fetchAllBoundaries")
+    public ResponseEntity<String> fetchAllBoundaries(@Valid @ModelAttribute BoundaryRelationshipSearchCriteria boundaryRelationshipSearchCriteria
+                                                     ,@Valid @RequestBody RequestInfo requestInfo
+                                                    ) {
+        BoundarySearchResponse response = diService.fetchAllBoundaries(boundaryRelationshipSearchCriteria, requestInfo);
+        System.out.println(response);
+        String boundaries = ftService.convertBoundaryRelationshipToFHIR(response.getTenantBoundary());
+        return ResponseEntity.ok(boundaries);
     }
 
 }

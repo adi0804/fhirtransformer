@@ -1,5 +1,9 @@
 package org.egov.fhirtransformer.service;
 
+import digit.web.models.BoundaryRelationshipSearchCriteria;
+import digit.web.models.BoundarySearchResponse;
+import jakarta.validation.Valid;
+import org.egov.common.contract.request.RequestInfo;
 import org.egov.common.models.core.URLParams;
 import org.egov.common.models.facility.FacilityBulkResponse;
 import org.egov.common.models.facility.FacilitySearchRequest;
@@ -13,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -36,6 +41,9 @@ public class DataIntegrationService {
     @Value("${stock.reconciliation.search.url}")
     private String stockReconciliationUrl;
 
+    @Value("${boundary.relationship.search.url}")
+    private String boundaryRelationshipUrl;
+
     public URI formUri(URLParams urlParams, String url){
 
         URI uri = UriComponentsBuilder.fromHttpUrl(url)
@@ -47,6 +55,34 @@ public class DataIntegrationService {
         return uri;
 
     }
+
+    public URI formBoundaryUri(BoundaryRelationshipSearchCriteria criteria, String url) {
+
+        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(url);
+
+        if (criteria.getTenantId() != null) {
+            builder.queryParam("tenantId", criteria.getTenantId());
+        }
+        if (criteria.getBoundaryType() != null) {
+            builder.queryParam("boundaryType", criteria.getBoundaryType());
+        }
+        if (criteria.getHierarchyType() != null) {
+            builder.queryParam("hierarchyType", criteria.getHierarchyType());
+        }
+        if (criteria.getIncludeChildren() != null) {
+            builder.queryParam("includeChildren", criteria.getIncludeChildren());
+        }
+        if (criteria.getIncludeParents() != null) {
+            builder.queryParam("includeParents", criteria.getIncludeParents());
+        }
+        if (criteria.getCodes() != null && !criteria.getCodes().isEmpty()) {
+            builder.queryParam("codes", criteria.getCodes());
+        }
+
+        return builder.build().toUri();
+    }
+
+
     public FacilityBulkResponse fetchAllFacilities(URLParams urlParams, FacilitySearchRequest facilitySearchRequest) {
 
         URI uri = formUri(urlParams,facilityUrl);
@@ -108,6 +144,21 @@ public class DataIntegrationService {
                 HttpMethod.POST,
                 entity,
                 StockReconciliationBulkResponse.class
+        );
+        return response.getBody();
+    }
+
+    public BoundarySearchResponse fetchAllBoundaries( BoundaryRelationshipSearchCriteria boundaryRelationshipSearchCriteria,RequestInfo requestInfo) {
+        URI uri = formBoundaryUri(boundaryRelationshipSearchCriteria, boundaryRelationshipUrl);
+        System.out.println(uri);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<RequestInfo> entity = new HttpEntity<>(requestInfo, headers);
+        ResponseEntity<BoundarySearchResponse> response = restTemplate.exchange(
+                uri,
+                HttpMethod.POST,
+                entity,
+                BoundarySearchResponse.class
         );
         return response.getBody();
     }

@@ -1,16 +1,16 @@
 package org.egov.fhirtransformer.service;
 
 import ca.uhn.fhir.context.FhirContext;
+import digit.web.models.EnrichedBoundary;
+import digit.web.models.HierarchyRelation;
 import org.egov.common.models.core.URLParams;
 import org.egov.common.models.facility.Facility;
 import org.egov.common.models.product.ProductVariant;
 import org.egov.common.models.stock.*;
-import org.egov.fhirtransformer.fhirBuilder.DIGITHCMBoundaryMapper;
 import org.egov.fhirtransformer.fhirBuilder.DIGITHCMFacilityMapper;
 import org.egov.fhirtransformer.fhirBuilder.DIGITHCMProductVariantMapper;
 import org.egov.fhirtransformer.fhirBuilder.DIGITHCMStockMapper;
 import org.egov.fhirtransformer.repository.FhirTransformerRepository;
-import org.egov.fhirtransformer.utils.BoundaryBundleBuilder;
 import org.egov.fhirtransformer.utils.BundleBuilder;
 import org.egov.fhirtransformer.validator.CustomFHIRValidator;
 import org.hl7.fhir.r5.model.*;
@@ -19,9 +19,12 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import static org.egov.fhirtransformer.fhirBuilder.DIGITHCMBoundaryMapper.buildLocationFromHierarchyRelation;
 
 @Service
 public class FhirTransformerService {
@@ -37,8 +40,6 @@ public class FhirTransformerService {
 
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
-
-
 
     private final FhirContext ctx = FhirContext.forR5();
 
@@ -72,18 +73,6 @@ public class FhirTransformerService {
         return ctx.newJsonParser().encodeResourceToString(bundle);
     }
 
-    public String getBoundaries(String afterId, String lastModifiedDate, int count) {
-        List<Map<String, Object>> rows = repository.getLocation(afterId, lastModifiedDate, count);
-        List<Location> locations = rows.stream()
-                .map(DIGITHCMBoundaryMapper::buildLocation)
-                .collect(Collectors.toList());
-
-        int total = repository.totalMatchingRecords(afterId, lastModifiedDate);
-        Bundle bundle = BoundaryBundleBuilder.buildLocationBundle(locations, lastModifiedDate, count, afterId, total);
-
-        return ctx.newJsonParser().encodeResourceToString(bundle);
-    }
-
     public String convertStocksToFHIR(List<Stock> stock, URLParams urlParams, Integer totalCount) {
         List<SupplyDelivery> supplyDeliveries = stock.stream()
                 .map(DIGITHCMStockMapper::buildSupplyDeliveryFromStock)
@@ -103,6 +92,30 @@ public class FhirTransformerService {
         Bundle bundle = BundleBuilder.buildInventoryReportBundle(inventoryReport, urlParams, totalCount);
 
         return ctx.newJsonParser().encodeResourceToString(bundle);
+    }
+
+    public String convertBoundaryRelationshipToFHIR(List<HierarchyRelation> hierarchyRelations){
+        List<Location> locations = new ArrayList<>();
+
+        for (HierarchyRelation relation : hierarchyRelations) {
+            for (EnrichedBoundary boundary : relation.getBoundary()) {
+                traverseBoundary(boundary, null, locations);
+            }
+        }
+
+        Bundle bundle = BundleBuilder.buildBoundaryLocationBundle(locations);
+        return ctx.newJsonParser().encodeResourceToString(bundle);
+    }
+
+    private void traverseBoundary(EnrichedBoundary current, Location parentLocation, List<Location> locations) {
+        Location location = buildLocationFromHierarchyRelation(current, parentLocation);
+        locations.add(location);
+
+        if (current.getChildren() != null) {
+            for (EnrichedBoundary child : current.getChildren()) {
+                traverseBoundary(child, location, locations);
+            }
+        }
     }
 
 

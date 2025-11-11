@@ -93,6 +93,18 @@ public class BundleBuilder {
         return bundle;
     }
 
+    public static Bundle buildBoundaryLocationBundle(List<Location> locations){
+        Bundle bundle = new Bundle();
+        bundle.setType(Bundle.BundleType.SEARCHSET);
+        bundle.setTimestamp(new Date());
+        bundle.setId(UUID.randomUUID().toString());
 
+        for (Location loc : locations) {
+            bundle.addEntry()
+                    .setResource(loc)
+                    .setFullUrl("urn:uuid:" + loc.getId());
+        }
+        return bundle;
+    }
 
 }

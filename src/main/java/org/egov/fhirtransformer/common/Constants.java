@@ -63,11 +63,4 @@ public class Constants {
     public static final String PRODUCT_VARIANT_API_PATH= "/fetchAllProductVariants";
 
 
-    // --- Database Column Keys ---
-    public static final String COL_ID = "id";
-    public static final String COL_CODE = "code";
-    public static final String COL_LAST_MODIFIED = "lastmodifiedtime";
-    public static final String COL_BOUNDARY_TYPE = "boundarytype";
-
-
 }
