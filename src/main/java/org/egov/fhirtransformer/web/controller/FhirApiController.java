@@ -103,4 +103,10 @@ public class FhirApiController {
         return ResponseEntity.ok(boundaries);
     }
 
+    @PostMapping("/consumeFHIR")
+    public ResponseEntity<String> consumeFHIR(@RequestBody String fhirJson) {
+        boolean isValid = ftService.validateFHIRResource(fhirJson);
+        return ResponseEntity.ok(isValid ? "Valid FHIR resource" : "Invalid FHIR resource");
+    }
+
 }

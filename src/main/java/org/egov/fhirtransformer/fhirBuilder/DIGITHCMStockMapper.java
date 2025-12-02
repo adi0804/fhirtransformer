@@ -5,7 +5,7 @@ import org.egov.common.models.stock.Stock;
 import org.egov.common.models.stock.StockReconciliation;
 import org.egov.fhirtransformer.common.Constants;
 import org.hl7.fhir.r5.model.*;
-
+import java.util.UUID;
 import java.util.Date;
 
 /**
@@ -16,7 +16,8 @@ public class DIGITHCMStockMapper {
     public static SupplyDelivery buildSupplyDeliveryFromStock(Stock stock) {
 
         SupplyDelivery supplyDelivery = new SupplyDelivery();
-        supplyDelivery.setId(stock.getId());
+//        supplyDelivery.setId(stock.getId());
+        supplyDelivery.setId(UUID.randomUUID().toString());
         Identifier identifier = new Identifier()
                 .setSystem(Constants.IDENTIFIER_SYSTEM_WAYBILL)
                 .setValue(stock.getWayBillNumber());
@@ -85,7 +86,8 @@ public class DIGITHCMStockMapper {
 
         InventoryReport inventoryReport = new InventoryReport();
 
-        inventoryReport.setId(stockReconciliation.getId());
+//        inventoryReport.setId(stockReconciliation.getId());
+        inventoryReport.setId(UUID.randomUUID().toString());
         inventoryReport.setStatus(InventoryReport.InventoryReportStatus.ACTIVE);
         inventoryReport.setCountType(InventoryReport.InventoryCountType.SNAPSHOT);
 

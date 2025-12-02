@@ -4,6 +4,7 @@ import org.egov.common.models.facility.Facility;
 import org.egov.fhirtransformer.common.Constants;
 import org.egov.fhirtransformer.utils.MapUtils;
 import org.hl7.fhir.r5.model.*;
+import java.util.UUID;
 
 import java.util.Collections;
 import java.util.Date;
@@ -19,7 +20,8 @@ public class DIGITHCMFacilityMapper {
         Long lastModifiedMillis = facility.getAuditDetails().getLastModifiedTime();
         Date lastModified = (lastModifiedMillis != null) ? new Date(lastModifiedMillis) : null;
 
-        location.setId(facility.getId());
+//        location.setId(facility.getId());
+        location.setId(UUID.randomUUID().toString());
         location.setName(facility.getName());
         location.setStatus(Location.LocationStatus.ACTIVE);
 

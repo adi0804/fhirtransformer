@@ -4,6 +4,7 @@ import org.egov.common.models.facility.Facility;
 import org.egov.common.models.product.ProductVariant;
 import org.egov.fhirtransformer.common.Constants;
 import org.hl7.fhir.r5.model.*;
+import java.util.UUID;
 
 import java.util.Date;
 
@@ -101,7 +102,8 @@ public class DIGITHCMProductVariantMapper {
         Long expiryDateMillis = productVariant.getAuditDetails().getLastModifiedTime();
         Date expiryDate = (expiryDateMillis != null) ? new Date(expiryDateMillis) : null;
 
-        inventoryItem.setId(productVariant.getId());
+//        inventoryItem.setId(productVariant.getId());
+        inventoryItem.setId(UUID.randomUUID().toString());
         inventoryItem.setStatus(InventoryItem.InventoryItemStatusCodes.ACTIVE);
 
         // Setting meta information for the Location resource DIGIT HCM Facility profile

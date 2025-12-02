@@ -3,7 +3,7 @@ package org.egov.fhirtransformer.fhirBuilder;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
-
+import java.util.UUID;
 import digit.web.models.EnrichedBoundary;
 import org.egov.fhirtransformer.common.Constants;
 import org.egov.fhirtransformer.utils.MapUtils;
@@ -18,7 +18,8 @@ public class DIGITHCMBoundaryMapper {
     public static Location buildLocationFromHierarchyRelation(EnrichedBoundary enrichedBoundary, Location parentLocation){
         Location location = new Location();
         String code = enrichedBoundary.getCode();
-        location.setId(enrichedBoundary.getId());
+//        location.setId(enrichedBoundary.getId());
+        location.setId(UUID.randomUUID().toString());
 
         location.setMeta(new Meta()
                 .addProfile(Constants.PROFILE_DIGIT_HCM_BOUNDARY));
