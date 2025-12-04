@@ -10,6 +10,7 @@ import org.egov.common.models.product.ProductVariantResponse;
 import org.egov.common.models.product.ProductVariantSearchRequest;
 import org.egov.common.models.stock.*;
 import org.egov.fhirtransformer.service.DataIntegrationService;
+import org.egov.fhirtransformer.service.FhirParseNLoadService;
 import org.egov.fhirtransformer.service.FhirTransformerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -28,6 +29,9 @@ public class FhirApiController {
 
     @Autowired
     private DataIntegrationService diService;
+
+    @Autowired
+    private FhirParseNLoadService fpService;
 
     @GetMapping("/health")
     public ResponseEntity<String> healthCheck() {
@@ -106,6 +110,10 @@ public class FhirApiController {
     @PostMapping("/consumeFHIR")
     public ResponseEntity<String> consumeFHIR(@RequestBody String fhirJson) {
         boolean isValid = ftService.validateFHIRResource(fhirJson);
+        if (!isValid){
+            return ResponseEntity.badRequest().body("Invalid FHIR resource");
+        }
+        String response = fpService.parseAndLoadFHIRResource(fhirJson);
         return ResponseEntity.ok(isValid ? "Valid FHIR resource" : "Invalid FHIR resource");
     }
 
