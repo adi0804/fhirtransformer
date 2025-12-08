@@ -19,6 +19,8 @@ import org.egov.fhirtransformer.common.Constants;
 import jakarta.validation.Valid;
 import digit.web.models.BoundaryRelationshipSearchCriteria;
 
+import java.util.HashMap;
+
 
 @RestController
 @RequestMapping("/fhir-api")
@@ -109,12 +111,12 @@ public class FhirApiController {
 
     @PostMapping("/consumeFHIR")
     public ResponseEntity<String> consumeFHIR(@RequestBody String fhirJson) {
-        boolean isValid = ftService.validateFHIRResource(fhirJson);
-        if (!isValid){
-            return ResponseEntity.badRequest().body("Invalid FHIR resource");
-        }
-        String response = fpService.parseAndLoadFHIRResource(fhirJson);
-        return ResponseEntity.ok(isValid ? "Valid FHIR resource" : "Invalid FHIR resource");
+//        boolean isValid = ftService.validateFHIRResource(fhirJson);
+//        if (!isValid){
+//            return ResponseEntity.badRequest().body("Invalid FHIR resource");
+//        }
+        HashMap<String, HashMap<String, Integer>> response = fpService.parseAndLoadFHIRResource(fhirJson);
+        return ResponseEntity.ok(response.toString());
     }
 
 }

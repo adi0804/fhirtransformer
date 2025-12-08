@@ -11,6 +11,7 @@ import org.egov.common.models.facility.FacilitySearchRequest;
 import org.egov.common.models.product.ProductVariantResponse;
 import org.egov.common.models.product.ProductVariantSearchRequest;
 import org.egov.common.models.stock.*;
+import org.egov.fhirtransformer.common.Constants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
@@ -20,6 +21,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
+import java.util.List;
 
 @Service
 public class DataIntegrationService {
@@ -175,6 +177,7 @@ public class DataIntegrationService {
         else{
             uri = URI.create(stockUpdateUrl);
         }
+        System.out.println("url"+ uri);
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity<Object> entity = new HttpEntity<>(stockBulkRequest, headers);
@@ -186,5 +189,19 @@ public class DataIntegrationService {
                 ResponseInfo.class
         );
         return response;
+    }
+
+    public URLParams formURLParams(List<String> idList) {
+        URLParams urlParams = new URLParams();
+        urlParams.setLimit(idList.size());
+        urlParams.setOffset(0);
+        urlParams.setTenantId(Constants.TENANT_ID);
+        return urlParams;
+    }
+
+    public RequestInfo formRequestInfo() {
+        RequestInfo requestInfo = new RequestInfo();
+        requestInfo.setAuthToken("");
+        return requestInfo;
     }
 }

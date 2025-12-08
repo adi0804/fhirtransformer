@@ -1,10 +1,7 @@
 package org.egov.fhirtransformer.fhirBuilder;
 
 import ca.uhn.fhir.context.FhirContext;
-import org.egov.common.models.stock.Stock;
-import org.egov.common.models.stock.StockReconciliation;
-import org.egov.common.models.stock.TransactionReason;
-import org.egov.common.models.stock.TransactionType;
+import org.egov.common.models.stock.*;
 import org.egov.fhirtransformer.common.Constants;
 import org.hl7.fhir.r5.model.*;
 import java.util.UUID;
@@ -130,7 +127,14 @@ public class DIGITHCMStockMapper {
     public static Stock buildStockFromSupplyDelivery(SupplyDelivery supplyDelivery) {
         // Implementation for reverse mapping if needed
         Stock stock = new Stock();
-        stock.setId(supplyDelivery.getId());
+        stock.setTenantId(Constants.TENANT_ID);
+
+        //Defaulting the values for mandatory fields
+        stock.setSenderType(SenderReceiverType.WAREHOUSE);
+        stock.setReferenceIdType(ReferenceIdType.OTHER);
+        stock.setReceiverType(SenderReceiverType.WAREHOUSE);
+
+        stock.setId(supplyDelivery.getIdElement().getIdPart());
         for (Identifier identifier : supplyDelivery.getIdentifier()) {
             if (Constants.IDENTIFIER_SYSTEM_WAYBILL.equals(identifier.getSystem())) {
                 stock.setWayBillNumber(identifier.getValue());
@@ -207,9 +211,7 @@ public class DIGITHCMStockMapper {
                         break;
                 }
             }
-
         }
-
         return stock;
     }
 
