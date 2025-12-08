@@ -2,6 +2,7 @@ package org.egov.fhirtransformer.service;
 
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.validation.ValidationResult;
+import ca.uhn.fhir.parser.IParser;
 import digit.web.models.EnrichedBoundary;
 import digit.web.models.HierarchyRelation;
 import org.egov.common.models.core.URLParams;
@@ -17,10 +18,12 @@ import org.egov.fhirtransformer.validator.CustomFHIRValidator;
 import org.hl7.fhir.r5.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -118,7 +121,4 @@ public class FhirTransformerService {
             }
         }
     }
-
-
-
 }

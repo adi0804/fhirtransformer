@@ -62,5 +62,8 @@ public class Constants {
     public static final String FACILITIES_API_PATH= "/fetchAllFacilities";
     public static final String PRODUCT_VARIANT_API_PATH= "/fetchAllProductVariants";
 
-
+    public static final String TENANT_ID = "mz";
+    public static final String NEW_IDS = "newIds";
+    public static final String EXISTING_IDS = "existingIds";
+    public static final String TOTAL_PROCESSED = "totalProcessed";
 }

@@ -1,8 +1,7 @@
 package org.egov.fhirtransformer.fhirBuilder;
 
 import ca.uhn.fhir.context.FhirContext;
-import org.egov.common.models.stock.Stock;
-import org.egov.common.models.stock.StockReconciliation;
+import org.egov.common.models.stock.*;
 import org.egov.fhirtransformer.common.Constants;
 import org.hl7.fhir.r5.model.*;
 import java.util.UUID;
@@ -122,6 +121,98 @@ public class DIGITHCMStockMapper {
         inventoryReport.addInventoryListing(listing);
 
         return inventoryReport;
+    }
+
+
+    public static Stock buildStockFromSupplyDelivery(SupplyDelivery supplyDelivery) {
+        // Implementation for reverse mapping if needed
+        Stock stock = new Stock();
+        stock.setTenantId(Constants.TENANT_ID);
+
+        //Defaulting the values for mandatory fields
+        stock.setSenderType(SenderReceiverType.WAREHOUSE);
+        stock.setReferenceIdType(ReferenceIdType.OTHER);
+        stock.setReceiverType(SenderReceiverType.WAREHOUSE);
+
+        stock.setId(supplyDelivery.getIdElement().getIdPart());
+        for (Identifier identifier : supplyDelivery.getIdentifier()) {
+            if (Constants.IDENTIFIER_SYSTEM_WAYBILL.equals(identifier.getSystem())) {
+                stock.setWayBillNumber(identifier.getValue());
+            }
+        }
+
+        if (supplyDelivery.hasOccurrenceDateTimeType()) {
+            stock.setDateOfEntry(supplyDelivery.getOccurrenceDateTimeType().getValue().getTime());
+        }
+
+        for (SupplyDelivery.SupplyDeliverySuppliedItemComponent suppliedItem : supplyDelivery.getSuppliedItem()) {
+            if (suppliedItem.hasItemReference() && suppliedItem.getItemReference().hasIdentifier()) {
+                Identifier itemId = suppliedItem.getItemReference().getIdentifier();
+                if (Constants.PRODUCT_VARIANT_IDENTIFIER_SYSTEM.equals(itemId.getSystem())) {
+                    stock.setProductVariantId(itemId.getValue());
+                }
+            }
+
+            // quantity → Stock.quantity
+            Quantity qty = suppliedItem.getQuantity();
+            if (qty != null && qty.hasValue()) {
+                stock.setQuantity(qty.getValue().intValue());
+            }
+
+            // suppliedItem.extension where url is supplydelivery-condition → Stock.transactionReason
+            for (Extension ext : suppliedItem.getExtension()) {
+                if (Constants.SD_CONDITION_URL.equals(ext.getUrl())) {
+                    CodeableConcept cc = (CodeableConcept) ext.getValue();
+                    if (cc != null && cc.hasCoding()) {
+                        if (Constants.TRANSACTION_REASON_SYSTEM.equals(cc.getCodingFirstRep().getSystem())) {
+                            // transaction reason is a enum
+                            stock.setTransactionReason(TransactionReason.fromValue(cc.getCodingFirstRep().getCode()));
+                        }
+                    }
+                }
+            }
+
+            if (supplyDelivery.hasDestination() && supplyDelivery.getDestination().hasIdentifier()) {
+                Identifier destId = supplyDelivery.getDestination().getIdentifier();
+                if (Constants.FACILITY_ID_SYSTEM.equals(destId.getSystem())) {
+                    stock.setReceiverId(destId.getValue());
+                }
+            }
+
+            for (Extension ext : supplyDelivery.getExtension()) {
+                switch (ext.getUrl()) {
+                    case Constants.SD_STAGE_URL:
+                        CodeableConcept ccStage = (CodeableConcept) ext.getValue();
+                        if (ccStage != null && ccStage.hasCoding()) {
+                            if (Constants.TRANSACTION_TYPE_SYSTEM.equals(ccStage.getCodingFirstRep().getSystem())) {
+                                stock.setTransactionType(TransactionType.fromValue(ccStage.getCodingFirstRep().getCode()));
+                            }
+                        }
+                        break;
+
+                    case Constants.EVENT_LOCATION_URL:
+                        Reference eventLoc = (Reference) ext.getValue();
+                        if (eventLoc != null && eventLoc.hasIdentifier()) {
+                            Identifier id = eventLoc.getIdentifier();
+                            if (Constants.FACILITY_ID_SYSTEM.equals(id.getSystem())) {
+                                stock.setReferenceId(id.getValue()); //change it facilityID once added
+                            }
+                        }
+                        break;
+
+                    case Constants.SD_SENDER_LOCATION_URL:
+                        Reference senderLoc = (Reference) ext.getValue();
+                        if (senderLoc != null && senderLoc.hasIdentifier()) {
+                            Identifier id = senderLoc.getIdentifier();
+                            if (Constants.FACILITY_ID_SYSTEM.equals(id.getSystem())) {
+                                stock.setSenderId(id.getValue());
+                            }
+                        }
+                        break;
+                }
+            }
+        }
+        return stock;
     }
 
 }

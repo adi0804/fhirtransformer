@@ -4,15 +4,14 @@ import digit.web.models.BoundaryRelationshipSearchCriteria;
 import digit.web.models.BoundarySearchResponse;
 import jakarta.validation.Valid;
 import org.egov.common.contract.request.RequestInfo;
+import org.egov.common.contract.response.ResponseInfo;
 import org.egov.common.models.core.URLParams;
 import org.egov.common.models.facility.FacilityBulkResponse;
 import org.egov.common.models.facility.FacilitySearchRequest;
 import org.egov.common.models.product.ProductVariantResponse;
 import org.egov.common.models.product.ProductVariantSearchRequest;
-import org.egov.common.models.stock.StockBulkResponse;
-import org.egov.common.models.stock.StockReconciliationBulkResponse;
-import org.egov.common.models.stock.StockReconciliationSearchRequest;
-import org.egov.common.models.stock.StockSearchRequest;
+import org.egov.common.models.stock.*;
+import org.egov.fhirtransformer.common.Constants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
@@ -22,6 +21,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
+import java.util.List;
 
 @Service
 public class DataIntegrationService {
@@ -43,6 +43,12 @@ public class DataIntegrationService {
 
     @Value("${boundary.relationship.search.url}")
     private String boundaryRelationshipUrl;
+
+    @Value("${stock.create.url}")
+    private String stockCreateUrl;
+
+    @Value("${stock.update.url}")
+    private String stockUpdateUrl;
 
     public URI formUri(URLParams urlParams, String url){
 
@@ -161,5 +167,41 @@ public class DataIntegrationService {
                 BoundarySearchResponse.class
         );
         return response.getBody();
+    }
+
+    public ResponseEntity<ResponseInfo> createOrUpdateStocks(@Valid @RequestBody StockBulkRequest stockBulkRequest, boolean createflag) {
+        URI uri = null;
+        if (createflag){
+            uri = URI.create(stockCreateUrl);
+        }
+        else{
+            uri = URI.create(stockUpdateUrl);
+        }
+        System.out.println("url"+ uri);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<Object> entity = new HttpEntity<>(stockBulkRequest, headers);
+
+        ResponseEntity<ResponseInfo> response = restTemplate.exchange(
+                uri,
+                HttpMethod.POST,
+                entity,
+                ResponseInfo.class
+        );
+        return response;
+    }
+
+    public URLParams formURLParams(List<String> idList) {
+        URLParams urlParams = new URLParams();
+        urlParams.setLimit(idList.size());
+        urlParams.setOffset(0);
+        urlParams.setTenantId(Constants.TENANT_ID);
+        return urlParams;
+    }
+
+    public RequestInfo formRequestInfo() {
+        RequestInfo requestInfo = new RequestInfo();
+        requestInfo.setAuthToken("");
+        return requestInfo;
     }
 }

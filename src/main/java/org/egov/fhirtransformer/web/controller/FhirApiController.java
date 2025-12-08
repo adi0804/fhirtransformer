@@ -14,6 +14,7 @@ import org.egov.common.models.product.ProductVariantResponse;
 import org.egov.common.models.product.ProductVariantSearchRequest;
 import org.egov.common.models.stock.*;
 import org.egov.fhirtransformer.service.DataIntegrationService;
+import org.egov.fhirtransformer.service.FhirParseNLoadService;
 import org.egov.fhirtransformer.service.FhirTransformerService;
 import org.egov.fhirtransformer.service.KafkaProducerService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +22,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 import digit.web.models.BoundaryRelationshipSearchCriteria;
+
+import java.util.HashMap;
 
 
 @RestController
@@ -35,6 +38,9 @@ public class FhirApiController {
 
     @Autowired
     private KafkaProducerService kafkaService;
+  
+    @Autowired
+    private FhirParseNLoadService fpService;
 
     @GetMapping("/health")
     public ResponseEntity<String> healthCheck() {
@@ -112,17 +118,13 @@ public class FhirApiController {
     }
 
     @PostMapping("/consumeFHIR")
-    public ResponseEntity<String> consumeFHIR(@RequestBody String fhirJson) throws JsonProcessingException {
-
-        JsonNode root = new ObjectMapper().readTree(fhirJson);
-        String bundleId = root.path("id").asText();
-        ValidationResult result = ftService.validateFHIRResource(fhirJson);
-
-        if (!result.isSuccessful()){
-            kafkaService.publishToDLQ(result, bundleId, root);
-            return ResponseEntity.badRequest().body("Invalid FHIR resource");
-        }
-        return ResponseEntity.badRequest().body("Valid FHIR resource");
+    public ResponseEntity<String> consumeFHIR(@RequestBody String fhirJson) {
+//        boolean isValid = ftService.validateFHIRResource(fhirJson);
+//        if (!isValid){
+//            return ResponseEntity.badRequest().body("Invalid FHIR resource");
+//        }
+        HashMap<String, HashMap<String, Integer>> response = fpService.parseAndLoadFHIRResource(fhirJson);
+        return ResponseEntity.ok(response.toString());
     }
 
 }
