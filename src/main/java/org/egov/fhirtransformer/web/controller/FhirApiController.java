@@ -1,6 +1,10 @@
 package org.egov.fhirtransformer.web.controller;
 
 
+import ca.uhn.fhir.validation.ValidationResult;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import digit.web.models.BoundarySearchResponse;
 import org.egov.common.contract.request.RequestInfo;
 import org.egov.common.models.core.URLParams;
@@ -11,10 +15,10 @@ import org.egov.common.models.product.ProductVariantSearchRequest;
 import org.egov.common.models.stock.*;
 import org.egov.fhirtransformer.service.DataIntegrationService;
 import org.egov.fhirtransformer.service.FhirTransformerService;
+import org.egov.fhirtransformer.service.KafkaProducerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.egov.fhirtransformer.common.Constants;
 import jakarta.validation.Valid;
 import digit.web.models.BoundaryRelationshipSearchCriteria;
 
@@ -29,14 +33,18 @@ public class FhirApiController {
     @Autowired
     private DataIntegrationService diService;
 
+    @Autowired
+    private KafkaProducerService kafkaService;
+
     @GetMapping("/health")
     public ResponseEntity<String> healthCheck() {
         return ResponseEntity.ok("Piku is Awesome and Adi is Stupid");
     }
 
     @PostMapping("/validate")
-    public ResponseEntity<String> validateFHIR(@RequestBody String fhirJson) {
-        boolean isValid = ftService.validateFHIRResource(fhirJson);
+    public ResponseEntity<String> validateFHIR(@RequestBody String fhirJson) throws JsonProcessingException {
+        ValidationResult result = ftService.validateFHIRResource(fhirJson);
+        boolean isValid = result.isSuccessful();
         return ResponseEntity.ok(isValid ? "Valid FHIR resource" : "Invalid FHIR resource");
     }
 
@@ -104,9 +112,17 @@ public class FhirApiController {
     }
 
     @PostMapping("/consumeFHIR")
-    public ResponseEntity<String> consumeFHIR(@RequestBody String fhirJson) {
-        boolean isValid = ftService.validateFHIRResource(fhirJson);
-        return ResponseEntity.ok(isValid ? "Valid FHIR resource" : "Invalid FHIR resource");
+    public ResponseEntity<String> consumeFHIR(@RequestBody String fhirJson) throws JsonProcessingException {
+
+        JsonNode root = new ObjectMapper().readTree(fhirJson);
+        String bundleId = root.path("id").asText();
+        ValidationResult result = ftService.validateFHIRResource(fhirJson);
+
+        if (!result.isSuccessful()){
+            kafkaService.publishToDLQ(result, bundleId, root);
+            return ResponseEntity.badRequest().body("Invalid FHIR resource");
+        }
+        return ResponseEntity.badRequest().body("Valid FHIR resource");
     }
 
 }

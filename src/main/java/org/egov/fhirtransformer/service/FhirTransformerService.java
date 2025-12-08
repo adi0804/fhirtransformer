@@ -1,6 +1,7 @@
 package org.egov.fhirtransformer.service;
 
 import ca.uhn.fhir.context.FhirContext;
+import ca.uhn.fhir.validation.ValidationResult;
 import digit.web.models.EnrichedBoundary;
 import digit.web.models.HierarchyRelation;
 import org.egov.common.models.core.URLParams;
@@ -43,7 +44,7 @@ public class FhirTransformerService {
 
     private final FhirContext ctx = FhirContext.forR5();
 
-    public boolean validateFHIRResource(String fhirJson) {
+    public ValidationResult validateFHIRResource(String fhirJson) {
         return validator.validate(fhirJson);
     }
 
