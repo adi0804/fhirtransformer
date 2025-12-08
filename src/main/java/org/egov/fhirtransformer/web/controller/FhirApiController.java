@@ -1,6 +1,10 @@
 package org.egov.fhirtransformer.web.controller;
 
 
+import ca.uhn.fhir.validation.ValidationResult;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import digit.web.models.BoundarySearchResponse;
 import org.egov.common.contract.request.RequestInfo;
 import org.egov.common.models.core.URLParams;
@@ -12,10 +16,10 @@ import org.egov.common.models.stock.*;
 import org.egov.fhirtransformer.service.DataIntegrationService;
 import org.egov.fhirtransformer.service.FhirParseNLoadService;
 import org.egov.fhirtransformer.service.FhirTransformerService;
+import org.egov.fhirtransformer.service.KafkaProducerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.egov.fhirtransformer.common.Constants;
 import jakarta.validation.Valid;
 import digit.web.models.BoundaryRelationshipSearchCriteria;
 
@@ -33,6 +37,9 @@ public class FhirApiController {
     private DataIntegrationService diService;
 
     @Autowired
+    private KafkaProducerService kafkaService;
+  
+    @Autowired
     private FhirParseNLoadService fpService;
 
     @GetMapping("/health")
@@ -41,8 +48,9 @@ public class FhirApiController {
     }
 
     @PostMapping("/validate")
-    public ResponseEntity<String> validateFHIR(@RequestBody String fhirJson) {
-        boolean isValid = ftService.validateFHIRResource(fhirJson);
+    public ResponseEntity<String> validateFHIR(@RequestBody String fhirJson) throws JsonProcessingException {
+        ValidationResult result = ftService.validateFHIRResource(fhirJson);
+        boolean isValid = result.isSuccessful();
         return ResponseEntity.ok(isValid ? "Valid FHIR resource" : "Invalid FHIR resource");
     }
 
