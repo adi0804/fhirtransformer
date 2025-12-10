@@ -16,7 +16,7 @@ public class BundleBuilder {
         for (SupplyDelivery supplyDelivery : supplyDeliveries) {
             bundle.addEntry()
                     .setResource(supplyDelivery)
-                    .setFullUrl("urn:uuid:" + supplyDelivery.getId());
+                    .setFullUrl("urn:uuid:" + UUID.randomUUID());
         }
 
         addBundleLink(bundle, urlParams, totalCount, Constants.STOCKS_API_PATH);

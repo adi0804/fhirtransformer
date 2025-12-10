@@ -15,8 +15,7 @@ public class DIGITHCMStockMapper {
     public static SupplyDelivery buildSupplyDeliveryFromStock(Stock stock) {
 
         SupplyDelivery supplyDelivery = new SupplyDelivery();
-//        supplyDelivery.setId(stock.getId());
-        supplyDelivery.setId(UUID.randomUUID().toString());
+        supplyDelivery.setId(stock.getId());
         Identifier identifier = new Identifier()
                 .setSystem(Constants.IDENTIFIER_SYSTEM_WAYBILL)
                 .setValue(stock.getWayBillNumber());
