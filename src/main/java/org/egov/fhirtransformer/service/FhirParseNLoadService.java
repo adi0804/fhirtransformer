@@ -28,7 +28,7 @@ public class FhirParseNLoadService {
     @Autowired
     private SupplyDeliveryToStockService sdToStockService;
 
-    public HashMap<String, HashMap<String, Integer>> parseAndLoadFHIRResource(String fhirJson) {
+    public HashMap<String, HashMap<String, Integer>> parseAndLoadFHIRResource(String fhirJson) throws Exception {
         HashMap<String, HashMap<String, Integer>> entityResults = new HashMap<>();
         // Parse the FHIR resource
 

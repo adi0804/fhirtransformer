@@ -2,6 +2,7 @@ package org.egov.fhirtransformer.web.controller;
 
 
 import ca.uhn.fhir.validation.ValidationResult;
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -17,13 +18,15 @@ import org.egov.fhirtransformer.service.DataIntegrationService;
 import org.egov.fhirtransformer.service.FhirParseNLoadService;
 import org.egov.fhirtransformer.service.FhirTransformerService;
 import org.egov.fhirtransformer.service.KafkaProducerService;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 import digit.web.models.BoundaryRelationshipSearchCriteria;
-
 import java.util.HashMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 @RestController
@@ -38,9 +41,11 @@ public class FhirApiController {
 
     @Autowired
     private KafkaProducerService kafkaService;
-  
+
     @Autowired
     private FhirParseNLoadService fpService;
+
+    private static final Logger logger = LoggerFactory.getLogger(FhirApiController.class);
 
     @GetMapping("/health")
     public ResponseEntity<String> healthCheck() {
@@ -61,8 +66,8 @@ public class FhirApiController {
 
     @PostMapping("/fetchAllFacilities")
     public ResponseEntity<String> fetchAllFacilities(@Valid @ModelAttribute URLParams urlParams
-                                                    ,@Valid @RequestBody FacilitySearchRequest request
-                                                    ) {
+            , @Valid @RequestBody FacilitySearchRequest request
+    ) {
         FacilityBulkResponse response = diService.fetchAllFacilities(urlParams, request);
         if (response == null || response.getFacilities() == null) return ResponseEntity.ok("No facilities found.");
         String facilities = ftService.convertFacilitiesToFHIR(response.getFacilities(), urlParams, response.getTotalCount().intValue());
@@ -70,9 +75,9 @@ public class FhirApiController {
     }
 
     @PostMapping("/fetchAllProductVariants")
-    public  ResponseEntity<String> fetchAllProductVariants(@Valid @ModelAttribute URLParams urlParams
-                                                           ,@Valid @RequestBody ProductVariantSearchRequest request
-                                                          ) {
+    public ResponseEntity<String> fetchAllProductVariants(@Valid @ModelAttribute URLParams urlParams
+            , @Valid @RequestBody ProductVariantSearchRequest request
+    ) {
         ProductVariantResponse response = diService.fetchAllProductVariants(urlParams, request);
         if (response == null || response.getProductVariant() == null) return ResponseEntity.ok("No facilities found.");
 //        String productVariants = service.convertFacilitiesToFHIR(response.getProductVariant(), urlParams, response.getTotalCount().intValue());
@@ -82,7 +87,7 @@ public class FhirApiController {
 
     @PostMapping("/fetchAllStocks")
     public ResponseEntity<String> fetchAllStocks(@Valid @ModelAttribute URLParams urlParams
-            ,@Valid @RequestBody StockSearchRequest stockRequest) {
+            , @Valid @RequestBody StockSearchRequest stockRequest) {
 
         StockBulkResponse response = diService.fetchAllStocks(urlParams, stockRequest);
         System.out.println(response.getStock());
@@ -96,7 +101,7 @@ public class FhirApiController {
 
     @PostMapping("/fetchAllStockReconciliation")
     public ResponseEntity<String> fetchAllStockReconciliation(@Valid @ModelAttribute URLParams urlParams,
-                                                 @Valid @RequestBody StockReconciliationSearchRequest stockReconciliationSearchRequest) {
+                                                              @Valid @RequestBody StockReconciliationSearchRequest stockReconciliationSearchRequest) {
 
         StockReconciliationBulkResponse response = diService.fetchAllStockReconciliation(urlParams, stockReconciliationSearchRequest);
         System.out.println(response.getStockReconciliation());
@@ -109,8 +114,8 @@ public class FhirApiController {
 
     @PostMapping("/fetchAllBoundaries")
     public ResponseEntity<String> fetchAllBoundaries(@Valid @ModelAttribute BoundaryRelationshipSearchCriteria boundaryRelationshipSearchCriteria
-                                                     ,@Valid @RequestBody RequestInfo requestInfo
-                                                    ) {
+            , @Valid @RequestBody RequestInfo requestInfo
+    ) {
         BoundarySearchResponse response = diService.fetchAllBoundaries(boundaryRelationshipSearchCriteria, requestInfo);
         System.out.println(response);
         String boundaries = ftService.convertBoundaryRelationshipToFHIR(response.getTenantBoundary());
@@ -119,12 +124,33 @@ public class FhirApiController {
 
     @PostMapping("/consumeFHIR")
     public ResponseEntity<String> consumeFHIR(@RequestBody String fhirJson) {
-//        boolean isValid = ftService.validateFHIRResource(fhirJson);
-//        if (!isValid){
-//            return ResponseEntity.badRequest().body("Invalid FHIR resource");
-//        }
-        HashMap<String, HashMap<String, Integer>> response = fpService.parseAndLoadFHIRResource(fhirJson);
-        return ResponseEntity.ok(response.toString());
-    }
+        try {
+            // Parse incoming FHIR JSON
+            JsonNode root = new ObjectMapper().readTree(fhirJson);
+            String bundleId = root.path("id").asText();
 
+            // Validate the FHIR resource
+            ValidationResult result = ftService.validateFHIRResource(fhirJson);
+
+            // If validation fails → publish to DLQ
+            if (!result.isSuccessful()) {
+                kafkaService.publishToDLQ(result, bundleId, root);
+                return ResponseEntity
+                        .badRequest()
+                        .body("Invalid FHIR resource");
+            }
+
+            // If valid → parse and load FHIR resource
+            HashMap<String, HashMap<String, Integer>> response = fpService.parseAndLoadFHIRResource(fhirJson);
+            return ResponseEntity.ok(response.toString());
+        } catch (JsonProcessingException e) {
+            logger.error("Failed to parse FHIR JSON :", e);
+            return ResponseEntity.badRequest().body("Invalid FHIR resource");
+        } catch (Exception e) {
+            logger.error("Unexpected error while processing FHIR resource", e);
+            return ResponseEntity
+                    .badRequest()
+                    .body("Processing Failed");
+        }
+    }
 }
