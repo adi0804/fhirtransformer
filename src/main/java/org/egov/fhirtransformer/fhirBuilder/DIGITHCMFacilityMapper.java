@@ -72,4 +72,48 @@ public class DIGITHCMFacilityMapper {
 
         return location;
     }
+
+    public static Facility convertFhirLocationToFacility(Location location) {
+        Facility facility = new Facility();
+
+        facility.setTenantId(Constants.TENANT_ID);
+        // Map other necessary fields from Location to Facility
+
+        //Map from FHIR
+        facility.setId(location.getIdElement().getIdPart());
+        facility.setName(location.getName());
+
+        for(CodeableConcept type : location.getType()) {
+            for(Coding coding : type.getCoding()) {
+                if (Constants.FACILITY_USAGE_SYSTEM.equals(coding.getSystem())) {
+                    facility.setUsage(coding.getCode());
+                }
+            }
+        }
+
+        if (location.getAddress() != null) {
+            org.egov.common.models.facility.Address facilityAddress = new org.egov.common.models.facility.Address();
+            if (!location.getAddress().getLine().isEmpty()) {
+                if (location.getAddress().getLine().size() > 2) {
+                    facilityAddress.setBuildingName(location.getAddress().getLine().get(0).getValue());
+                    facilityAddress.setAddressLine1(location.getAddress().getLine().get(1).getValue());
+                    facilityAddress.setAddressLine2(location.getAddress().getLine().get(2).getValue());
+                } else if (location.getAddress().getLine().size() > 1) {
+                    facilityAddress.setAddressLine1(location.getAddress().getLine().get(0).getValue());
+                    facilityAddress.setAddressLine2(location.getAddress().getLine().get(1).getValue());
+                } else {
+                    facilityAddress.setAddressLine1(location.getAddress().getLine().get(0).getValue());
+
+                }
+            }
+            facilityAddress.setCity(location.getAddress().getCity());
+            facilityAddress.setPincode(location.getAddress().getPostalCode());
+            if (location.getPosition() != null) {
+                facilityAddress.setLatitude(location.getPosition().getLatitude().doubleValue());
+                facilityAddress.setLongitude(location.getPosition().getLongitude().doubleValue());
+            }
+            facility.setAddress(facilityAddress);
+        }
+        return facility;
+    }
 }

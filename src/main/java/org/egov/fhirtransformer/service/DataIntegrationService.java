@@ -1,11 +1,13 @@
 package org.egov.fhirtransformer.service;
 
+import digit.web.models.BoundaryRelationshipRequest;
 import digit.web.models.BoundaryRelationshipSearchCriteria;
 import digit.web.models.BoundarySearchResponse;
 import jakarta.validation.Valid;
 import org.egov.common.contract.request.RequestInfo;
 import org.egov.common.contract.response.ResponseInfo;
 import org.egov.common.models.core.URLParams;
+import org.egov.common.models.facility.FacilityBulkRequest;
 import org.egov.common.models.facility.FacilityBulkResponse;
 import org.egov.common.models.facility.FacilitySearchRequest;
 import org.egov.common.models.product.ProductVariantResponse;
@@ -49,6 +51,18 @@ public class DataIntegrationService {
 
     @Value("${stock.update.url}")
     private String stockUpdateUrl;
+
+    @Value("${facility.create.url}")
+    private String facilityCreateUrl;
+
+    @Value("${facility.update.url}")
+    private String facilityUpdateUrl;
+
+    @Value("${boundary.create.url}")
+    private String boundaryCreateUrl;
+
+    @Value("${boundary.update.url}")
+    private String boundaryUpdateUrl;
 
     public URI formUri(URLParams urlParams, String url){
 
@@ -181,6 +195,50 @@ public class DataIntegrationService {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity<Object> entity = new HttpEntity<>(stockBulkRequest, headers);
+
+        ResponseEntity<ResponseInfo> response = restTemplate.exchange(
+                uri,
+                HttpMethod.POST,
+                entity,
+                ResponseInfo.class
+        );
+        return response;
+    }
+
+    public ResponseEntity<ResponseInfo> createOrUpdateFacilities(@Valid @RequestBody FacilityBulkRequest facilityBulkRequest, boolean createflag) {
+        URI uri = null;
+        if (createflag){
+            uri = URI.create(facilityCreateUrl);
+        }
+        else{
+            uri = URI.create(facilityUpdateUrl);
+        }
+        System.out.println("url"+ uri);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<Object> entity = new HttpEntity<>(facilityBulkRequest, headers);
+
+        ResponseEntity<ResponseInfo> response = restTemplate.exchange(
+                uri,
+                HttpMethod.POST,
+                entity,
+                ResponseInfo.class
+        );
+        return response;
+    }
+
+    public ResponseEntity<ResponseInfo> createOrUpdateBoundaries(@Valid @RequestBody BoundaryRelationshipRequest boundaryRelationshipRequest, boolean createflag) {
+        URI uri = null;
+        if (createflag){
+            uri = URI.create(boundaryCreateUrl);
+        }
+        else{
+            uri = URI.create(boundaryUpdateUrl);
+        }
+        System.out.println("url"+ uri);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<Object> entity = new HttpEntity<>(boundaryRelationshipRequest, headers);
 
         ResponseEntity<ResponseInfo> response = restTemplate.exchange(
                 uri,
