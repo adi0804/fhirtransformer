@@ -2,7 +2,6 @@ package org.egov.fhirtransformer.validator;
 
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.context.support.DefaultProfileValidationSupport;
-import ca.uhn.fhir.parser.IParser;
 import ca.uhn.fhir.validation.FhirValidator;
 import ca.uhn.fhir.validation.ValidationResult;
 
@@ -16,11 +15,8 @@ import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.r5.model.CodeSystem;
 import org.hl7.fhir.r5.model.ValueSet;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -80,10 +76,8 @@ public class CustomFHIRValidator {
         }
     }
 
-    public boolean validate(String fhirJson) {
+    public ValidationResult validate(String fhirJson) {
         IBaseResource resource = ctx.newJsonParser().parseResource(fhirJson);
-        ValidationResult result = validator.validateWithResult(resource);
-        result.getMessages().forEach(msg -> System.out.println(msg.getSeverity() + ": " + msg.getMessage()));
-        return result.isSuccessful();
+        return validator.validateWithResult(resource);
     }
 }
