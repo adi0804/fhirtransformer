@@ -110,7 +110,7 @@ public class FhirApiController {
     }
 
     @PostMapping("/consumeFHIR")
-    public ResponseEntity<String> consumeFHIR(@RequestBody String fhirJson) {
+    public ResponseEntity<String> consumeFHIR(@RequestBody String fhirJson) throws Exception {
 //        boolean isValid = ftService.validateFHIRResource(fhirJson);
 //        if (!isValid){
 //            return ResponseEntity.badRequest().body("Invalid FHIR resource");

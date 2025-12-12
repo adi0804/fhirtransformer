@@ -4,6 +4,8 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
 import java.util.UUID;
+
+import digit.web.models.BoundaryRelation;
 import digit.web.models.EnrichedBoundary;
 import org.egov.fhirtransformer.common.Constants;
 import org.egov.fhirtransformer.utils.MapUtils;
@@ -44,6 +46,38 @@ public class DIGITHCMBoundaryMapper {
         }
 
         return location;
+    }
+
+    public static BoundaryRelation convertFhirLocationToBoundaryRelation(Location location){
+        BoundaryRelation boundaryRelation = new BoundaryRelation();
+        //Set mandatory fields
+        boundaryRelation.setTenantId(Constants.TENANT_ID);
+        boundaryRelation.setHierarchyType("ADMIN");
+
+        // Set code from identifier
+        if(location.hasIdentifier()){
+            for(Identifier identifier : location.getIdentifier()){
+                if(identifier.getSystem().equals(Constants.IDENTIFIER_SYSTEM_BOUNDARY)){
+                    boundaryRelation.setCode(identifier.getValue());
+                    break;
+                }
+            }
+        }
+
+        // Set boundaryType from alias
+        if(location.hasAlias() && !location.getAlias().isEmpty()){
+            boundaryRelation.setBoundaryType(location.getAlias().get(0).getValueAsString());
+        }
+
+        // Set parent code from partOf reference
+        if(location.hasPartOf()){
+            Reference partOfRef = location.getPartOf();
+            if(partOfRef.getReference() != null && partOfRef.getReference().startsWith("Location/")){
+                boundaryRelation.setParent(partOfRef.getReference().substring("Location/".length()));
+            }
+        }
+
+        return boundaryRelation;
     }
 
 }
