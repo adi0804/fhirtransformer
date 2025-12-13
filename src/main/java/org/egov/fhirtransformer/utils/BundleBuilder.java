@@ -61,7 +61,7 @@ public class BundleBuilder {
         for (Location loc : locations) {
             bundle.addEntry()
                     .setResource(loc)
-                    .setFullUrl("urn:uuid:" + loc.getId());
+                    .setFullUrl("urn:uuid:" + UUID.randomUUID());
         }
         return bundle;
     }

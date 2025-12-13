@@ -81,6 +81,7 @@ public class FhirParseNLoadService {
                     facilityMap.put(logicalId, facility);
                 }
                 else if (profiles.contains(Constants.PROFILE_DIGIT_HCM_BOUNDARY)) {
+                    logicalId = location.getName();
                     BoundaryRelation boundaryRelation = DIGITHCMBoundaryMapper.convertFhirLocationToBoundaryRelation(location);
                     boundaryRelationMap.put(logicalId, boundaryRelation);
                 }

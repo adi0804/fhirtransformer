@@ -16,8 +16,7 @@ public class DIGITHCMBoundaryMapper {
     public static Location buildLocationFromHierarchyRelation(EnrichedBoundary enrichedBoundary, Location parentLocation){
         Location location = new Location();
         String code = enrichedBoundary.getCode();
-//        location.setId(enrichedBoundary.getId());
-        location.setId(UUID.randomUUID().toString());
+        location.setId(enrichedBoundary.getId());
 
         location.setMeta(new Meta()
                 .addProfile(Constants.PROFILE_DIGIT_HCM_BOUNDARY));
@@ -38,7 +37,7 @@ public class DIGITHCMBoundaryMapper {
                         new org.hl7.fhir.r5.model.StringType(enrichedBoundary.getBoundaryType())));
 
         if(parentLocation != null){
-            location.setPartOf(new Reference().setReference(Constants.LOCATION_PREFIX + parentLocation.getId()));
+            location.setPartOf(new Reference().setReference("Location/" + parentLocation.getName()));
         }
 
         return location;
@@ -48,7 +47,10 @@ public class DIGITHCMBoundaryMapper {
         BoundaryRelation boundaryRelation = new BoundaryRelation();
         //Set mandatory fields
         boundaryRelation.setTenantId(Constants.TENANT_ID);
-        boundaryRelation.setHierarchyType(Constants.ADMIN);
+        boundaryRelation.setHierarchyType("PERFORMAN");
+
+        //Set Boundary RelationShip ID
+        boundaryRelation.setId(location.getIdElement().getIdPart());
 
         // Set code from identifier
         if(location.hasIdentifier()){

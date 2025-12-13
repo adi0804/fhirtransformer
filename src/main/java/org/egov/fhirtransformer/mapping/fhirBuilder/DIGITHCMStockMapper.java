@@ -85,8 +85,7 @@ public class DIGITHCMStockMapper {
 
         InventoryReport inventoryReport = new InventoryReport();
 
-//        inventoryReport.setId(stockReconciliation.getId());
-        inventoryReport.setId(UUID.randomUUID().toString());
+        inventoryReport.setId(stockReconciliation.getId());
         inventoryReport.setStatus(InventoryReport.InventoryReportStatus.ACTIVE);
         inventoryReport.setCountType(InventoryReport.InventoryCountType.SNAPSHOT);
 

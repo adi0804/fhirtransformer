@@ -95,6 +95,7 @@ public class InventoryItemToProductVariant {
                     ProductVariantRequest productVariantRequest = new ProductVariantRequest();
                     productVariantRequest.setRequestInfo(apiIntegrationService.formRequestInfo());
                     productVariantRequest.setProductVariant(newProductVariant);
+                    productVariantRequest.setApiOperation(ApiOperation.CREATE);
                     //Call create API
                     apiIntegrationService.sendRequestToAPI(productVariantRequest, productVariantCreateUrl);
                 }
@@ -111,6 +112,7 @@ public class InventoryItemToProductVariant {
                     ProductVariantRequest  productVariantRequest= new ProductVariantRequest();
                     productVariantRequest.setRequestInfo(apiIntegrationService.formRequestInfo());
                     productVariantRequest.setProductVariant(existingProductVariant);
+                    productVariantRequest.setApiOperation(ApiOperation.UPDATE);
                     //Call update API
                     apiIntegrationService.sendRequestToAPI(productVariantRequest, productVariantUpdateUrl);
                 }

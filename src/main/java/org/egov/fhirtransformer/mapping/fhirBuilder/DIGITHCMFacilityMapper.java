@@ -19,8 +19,7 @@ public class DIGITHCMFacilityMapper {
         Long lastModifiedMillis = facility.getAuditDetails().getLastModifiedTime();
         Date lastModified = (lastModifiedMillis != null) ? new Date(lastModifiedMillis) : null;
 
-//        location.setId(facility.getId());
-        location.setId(UUID.randomUUID().toString());
+        location.setId(facility.getId());
         location.setName(facility.getName());
         location.setStatus(Location.LocationStatus.ACTIVE);
 

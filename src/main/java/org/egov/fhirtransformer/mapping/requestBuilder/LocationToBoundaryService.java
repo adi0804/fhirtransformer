@@ -75,6 +75,7 @@ public class LocationToBoundaryService {
                 criteria.setCodes(List.of(id));
                 criteria.setTenantId(Constants.TENANT_ID);
                 BoundarySearchResponse boundarySearchResponse = apiIntegrationService.fetchAllBoundaries(criteria, apiIntegrationService.formRequestInfo());
+                System.out.println("Boundary Search Response for id " + id + ": " + boundarySearchResponse);
                 if(!boundarySearchResponse.getTenantBoundary().isEmpty()){
                     List<String> existingIds = new ArrayList<>();
                     existingIds.add(id);
