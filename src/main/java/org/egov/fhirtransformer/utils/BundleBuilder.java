@@ -4,66 +4,25 @@ package org.egov.fhirtransformer.utils;
 import org.egov.common.models.core.URLParams;
 import org.egov.fhirtransformer.common.Constants;
 import org.hl7.fhir.r5.model.*;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
+
+import java.util.*;
 
 public class BundleBuilder {
 
-    public static Bundle buildSupplyDeliveryBundle(List<SupplyDelivery> supplyDeliveries, URLParams urlParams, int totalCount) {
+    public static <T extends Resource> Bundle buildBundle(
+            List<T> resources, URLParams urlParams, int totalCount, String apiPath) {
 
-        Bundle bundle = formBundle(totalCount);
-        for (SupplyDelivery supplyDelivery : supplyDeliveries) {
+        Bundle bundle = buildBaseBundle(totalCount);
+        for (T resource : resources) {
             bundle.addEntry()
-                    .setResource(supplyDelivery)
+                    .setResource(resource)
                     .setFullUrl("urn:uuid:" + UUID.randomUUID());
         }
-
-        addBundleLink(bundle, urlParams, totalCount, Constants.STOCKS_API_PATH);
+        addBundleLink(bundle, urlParams, totalCount, apiPath);
         return bundle;
     }
 
-    public static Bundle buildInventoryReportBundle(List<InventoryReport> inventoryReport, URLParams urlParams, int totalCount) {
-
-        Bundle bundle = formBundle(totalCount);
-        for (InventoryReport report : inventoryReport) {
-            bundle.addEntry()
-                    .setResource(report)
-                    .setFullUrl("urn:uuid:" + report.getId());
-        }
-
-        addBundleLink(bundle, urlParams, totalCount, Constants.STOCK_RECONCILIATION_API_PATH);
-        return bundle;
-    }
-
-    public static Bundle buildFacilityLocationBundle(List<Location> location, URLParams urlParams, int totalCount) {
-
-        Bundle bundle = formBundle(totalCount);
-        for (Location loc : location) {
-            bundle.addEntry()
-                    .setResource(loc)
-                    .setFullUrl("urn:uuid:" + loc.getId());
-        }
-
-        addBundleLink(bundle, urlParams, totalCount, Constants.FACILITIES_API_PATH);
-        return bundle;
-    }
-
-    public static Bundle buildInventoryItemBundle(List<InventoryItem> inventoryItem, URLParams urlParams, int totalCount) {
-
-        Bundle bundle = formBundle(totalCount);
-        for (InventoryItem item : inventoryItem) {
-            bundle.addEntry()
-                    .setResource(item)
-                    .setFullUrl("urn:uuid:" + item.getId());
-        }
-
-        addBundleLink(bundle, urlParams, totalCount, Constants.PRODUCT_VARIANT_API_PATH);
-        return bundle;
-    }
-
-
-    public static Bundle formBundle(int totalCount){
+    public static Bundle buildBaseBundle(int totalCount){
         Bundle bundle = new Bundle();
         bundle.setType(Bundle.BundleType.SEARCHSET);
         bundle.setTimestamp(new Date());
@@ -107,4 +66,14 @@ public class BundleBuilder {
         return bundle;
     }
 
+    public static HashMap<String, Integer> fetchMetrics(HashMap<String, Integer> results, HashMap<String, List<String>> newAndExistingMap) {
+        results.put(Constants.NEW_IDS,
+                newAndExistingMap.getOrDefault(Constants.NEW_IDS,
+                        Collections.emptyList()).size());
+        results.put(Constants.EXISTING_IDS,
+                newAndExistingMap.getOrDefault(Constants.EXISTING_IDS,
+                        Collections.emptyList()).size());
+        System.out.println(results);
+        return results;
+    }
 }

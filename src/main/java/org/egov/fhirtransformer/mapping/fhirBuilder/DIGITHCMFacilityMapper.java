@@ -1,14 +1,13 @@
-package org.egov.fhirtransformer.fhirBuilder;
+package org.egov.fhirtransformer.mapping.fhirBuilder;
 
 import org.egov.common.models.facility.Facility;
 import org.egov.fhirtransformer.common.Constants;
-import org.egov.fhirtransformer.utils.MapUtils;
 import org.hl7.fhir.r5.model.*;
+
+import java.util.List;
 import java.util.UUID;
 
-import java.util.Collections;
 import java.util.Date;
-import java.util.Map;
 
 public class DIGITHCMFacilityMapper {
     /**
@@ -48,25 +47,26 @@ public class DIGITHCMFacilityMapper {
 
         // Setting address details
         Address address = new Address();
-        if (facility.getAddress() != null) {
-            if (facility.getAddress().getBuildingName() != null) {
-                address.addLine(facility.getAddress().getBuildingName());
+        org.egov.common.models.facility.Address addr = facility.getAddress();
+        if (addr != null) {
+            if (addr.getBuildingName() != null) {
+                address.addLine(addr.getBuildingName());
             }
-            if (facility.getAddress().getAddressLine1() != null) {
-                address.addLine(facility.getAddress().getAddressLine1());
+            if (addr.getAddressLine1() != null) {
+                address.addLine(addr.getAddressLine1());
             }
-            if (facility.getAddress().getAddressLine2() != null) {
-                address.addLine(facility.getAddress().getAddressLine2());
+            if (addr.getAddressLine2() != null) {
+                address.addLine(addr.getAddressLine2());
             }
-            address.setCity(facility.getAddress().getCity());
-            address.setPostalCode(facility.getAddress().getPincode());
+            address.setCity(addr.getCity());
+            address.setPostalCode(addr.getPincode());
         }
         location.setAddress(address);
 
         // Setting position details (latitude and longitude)
         Location.LocationPositionComponent position = new Location.LocationPositionComponent()
-                .setLatitude(facility.getAddress().getLatitude())
-                .setLongitude(facility.getAddress().getLongitude());
+                .setLatitude(addr.getLatitude())
+                .setLongitude(addr.getLongitude());
 
         location.setPosition(position);
 
@@ -92,19 +92,14 @@ public class DIGITHCMFacilityMapper {
         }
 
         if (location.getAddress() != null) {
+
             org.egov.common.models.facility.Address facilityAddress = new org.egov.common.models.facility.Address();
             if (!location.getAddress().getLine().isEmpty()) {
-                if (location.getAddress().getLine().size() > 2) {
-                    facilityAddress.setBuildingName(location.getAddress().getLine().get(0).getValue());
-                    facilityAddress.setAddressLine1(location.getAddress().getLine().get(1).getValue());
-                    facilityAddress.setAddressLine2(location.getAddress().getLine().get(2).getValue());
-                } else if (location.getAddress().getLine().size() > 1) {
-                    facilityAddress.setAddressLine1(location.getAddress().getLine().get(0).getValue());
-                    facilityAddress.setAddressLine2(location.getAddress().getLine().get(1).getValue());
-                } else {
-                    facilityAddress.setAddressLine1(location.getAddress().getLine().get(0).getValue());
+                List<StringType> lines = location.getAddress().getLine();
+                if (!lines.isEmpty()) facilityAddress.setBuildingName(lines.get(0).getValue());
+                if (lines.size() >= 2) facilityAddress.setAddressLine1(lines.get(1).getValue());
+                if (lines.size() >= 3) facilityAddress.setAddressLine2(lines.get(2).getValue());
 
-                }
             }
             facilityAddress.setCity(location.getAddress().getCity());
             facilityAddress.setPincode(location.getAddress().getPostalCode());

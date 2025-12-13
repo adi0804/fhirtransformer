@@ -1,5 +1,9 @@
 package org.egov.fhirtransformer.utils;
 
+import org.egov.fhirtransformer.common.Constants;
+
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -24,5 +28,14 @@ public final class MapUtils {
     public static Long getLong(Map<String, Object> row, String key) {
         Object value = row.get(key);
         return value != null ? (Long) value : null;
+    }
+
+    public static HashMap<String, List<String>> splitNewAndExistingIDS(List<String> newIds, List<String> existingIds) {
+
+        HashMap<String,List<String>> newandexistingids = new HashMap<>();
+        newIds.removeAll(existingIds);
+        newandexistingids.put(Constants.EXISTING_IDS, existingIds);
+        newandexistingids.put(Constants.NEW_IDS, newIds);
+        return newandexistingids;
     }
 }

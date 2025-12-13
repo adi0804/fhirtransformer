@@ -1,4 +1,4 @@
-package org.egov.fhirtransformer.service;
+package org.egov.fhirtransformer.repository;
 
 import ca.uhn.fhir.validation.ResultSeverityEnum;
 import ca.uhn.fhir.validation.SingleValidationMessage;

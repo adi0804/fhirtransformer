@@ -1,6 +1,5 @@
-package org.egov.fhirtransformer.fhirBuilder;
+package org.egov.fhirtransformer.mapping.fhirBuilder;
 
-import org.egov.common.models.facility.Facility;
 import org.egov.common.models.product.ProductVariant;
 import org.egov.fhirtransformer.common.Constants;
 import org.hl7.fhir.r5.model.*;
@@ -177,5 +176,16 @@ public class DIGITHCMProductVariantMapper {
         inventoryItem.setInstance(instanceComponent);
 
         return inventoryItem;
+    }
+
+    public static ProductVariant buildProductVariantFromInventoryItem(InventoryItem inventoryItem) {
+        ProductVariant productVariant = new ProductVariant();
+        //Defaulting the values for mandatory fields
+        productVariant.setTenantId(Constants.TENANT_ID);
+        productVariant.setProductId(inventoryItem.getId());
+        productVariant.setSku(inventoryItem.getIdentifierFirstRep().getValue());
+        productVariant.setVariation(inventoryItem.getNameFirstRep().getName());
+        return productVariant;
+
     }
 }

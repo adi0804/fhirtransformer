@@ -1,16 +1,12 @@
-package org.egov.fhirtransformer.fhirBuilder;
+package org.egov.fhirtransformer.mapping.fhirBuilder;
 
 import java.util.Collections;
-import java.util.Date;
-import java.util.Map;
 import java.util.UUID;
 
 import digit.web.models.BoundaryRelation;
 import digit.web.models.EnrichedBoundary;
 import org.egov.fhirtransformer.common.Constants;
-import org.egov.fhirtransformer.utils.MapUtils;
 import org.hl7.fhir.r5.model.*;
-
 
 /**
  * Utility to map boundary master data rows to FHIR Location resources.
@@ -42,7 +38,7 @@ public class DIGITHCMBoundaryMapper {
                         new org.hl7.fhir.r5.model.StringType(enrichedBoundary.getBoundaryType())));
 
         if(parentLocation != null){
-            location.setPartOf(new Reference().setReference("Location/" + parentLocation.getId()));
+            location.setPartOf(new Reference().setReference(Constants.LOCATION_PREFIX + parentLocation.getId()));
         }
 
         return location;
@@ -52,7 +48,7 @@ public class DIGITHCMBoundaryMapper {
         BoundaryRelation boundaryRelation = new BoundaryRelation();
         //Set mandatory fields
         boundaryRelation.setTenantId(Constants.TENANT_ID);
-        boundaryRelation.setHierarchyType("ADMIN");
+        boundaryRelation.setHierarchyType(Constants.ADMIN);
 
         // Set code from identifier
         if(location.hasIdentifier()){
@@ -72,8 +68,8 @@ public class DIGITHCMBoundaryMapper {
         // Set parent code from partOf reference
         if(location.hasPartOf()){
             Reference partOfRef = location.getPartOf();
-            if(partOfRef.getReference() != null && partOfRef.getReference().startsWith("Location/")){
-                boundaryRelation.setParent(partOfRef.getReference().substring("Location/".length()));
+            if(partOfRef.getReference() != null && partOfRef.getReference().startsWith(Constants.LOCATION_PREFIX)){
+                boundaryRelation.setParent(partOfRef.getReference().substring(Constants.LOCATION_PREFIX.length()));
             }
         }
 

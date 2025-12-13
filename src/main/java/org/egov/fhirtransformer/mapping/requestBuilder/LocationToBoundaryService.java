@@ -1,13 +1,14 @@
-package org.egov.fhirtransformer.service;
+package org.egov.fhirtransformer.mapping.requestBuilder;
 
 import digit.web.models.BoundaryRelation;
 import digit.web.models.BoundaryRelationshipRequest;
 import digit.web.models.BoundaryRelationshipSearchCriteria;
 import digit.web.models.BoundarySearchResponse;
-import org.egov.common.models.core.URLParams;
-import org.egov.common.models.facility.*;
 import org.egov.fhirtransformer.common.Constants;
+import org.egov.fhirtransformer.service.ApiIntegrationService;
+import org.egov.fhirtransformer.utils.BundleBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -19,7 +20,13 @@ import java.util.List;
 public class LocationToBoundaryService {
 
     @Autowired
-    private DataIntegrationService diService;
+    private ApiIntegrationService apiIntegrationService;
+
+    @Value("${boundary.create.url}")
+    private String boundaryCreateUrl;
+
+    @Value("${boundary.update.url}")
+    private String boundaryUpdateUrl;
 
     public HashMap<String, Integer> transformLocationToBoundary(HashMap<String, BoundaryRelation> boundaryRelationMap) throws Exception {
         HashMap<String, Integer> results = new HashMap<>();
@@ -28,20 +35,17 @@ public class LocationToBoundaryService {
             System.out.println("updated parent boundary" + boundaryRelationMap);
             List<String> idList = new ArrayList<>(boundaryRelationMap.keySet());
             if (!idList.isEmpty()) {
-                HashMap<String, List<String>> newandexistingstocks = checkExistingBoundaries(idList);
+                HashMap<String, List<String>> newAndExistingIdsMap = checkExistingBoundaries(idList);
                 //call create or update based on existing or new stocks
-                callCreateOrUpdateBoundaries(newandexistingstocks, boundaryRelationMap);
+                callCreateOrUpdateBoundaries(newAndExistingIdsMap, boundaryRelationMap);
+
                 results.put(Constants.TOTAL_PROCESSED, boundaryRelationMap.size());
-                results.put(Constants.NEW_IDS,
-                        newandexistingstocks.getOrDefault(Constants.NEW_IDS, Collections.emptyList()).size());
-                results.put(Constants.EXISTING_IDS,
-                        newandexistingstocks.getOrDefault(Constants.EXISTING_IDS, Collections.emptyList()).size());
-                System.out.println(results);
+                results = BundleBuilder.fetchMetrics(results, newAndExistingIdsMap);
             }
         } catch (Exception e){
             throw new Exception("Error in transformLocationToBoundary: " + e.getMessage());
         }
-        return new HashMap<String, Integer>();
+        return results;
     }
 
     public HashMap<String, BoundaryRelation> updateBoundaryRelationParent(HashMap<String, BoundaryRelation> boundaryRelationMap) throws Exception {
@@ -70,7 +74,7 @@ public class LocationToBoundaryService {
                 BoundaryRelationshipSearchCriteria criteria = new BoundaryRelationshipSearchCriteria();
                 criteria.setCodes(List.of(id));
                 criteria.setTenantId(Constants.TENANT_ID);
-                BoundarySearchResponse boundarySearchResponse = diService.fetchAllBoundaries(criteria,diService.formRequestInfo());
+                BoundarySearchResponse boundarySearchResponse = apiIntegrationService.fetchAllBoundaries(criteria, apiIntegrationService.formRequestInfo());
                 if(!boundarySearchResponse.getTenantBoundary().isEmpty()){
                     List<String> existingIds = new ArrayList<>();
                     existingIds.add(id);
@@ -99,24 +103,24 @@ public class LocationToBoundaryService {
                 for (String id : newandexistingskeys.get(Constants.NEW_IDS)) {
                     newIds.add(boundaryRelationMap.get(id));
                     BoundaryRelationshipRequest boundaryRelationshipRequest = new BoundaryRelationshipRequest();
-                    boundaryRelationshipRequest.setRequestInfo(diService.formRequestInfo());
+                    boundaryRelationshipRequest.setRequestInfo(apiIntegrationService.formRequestInfo());
                     boundaryRelationshipRequest.setBoundaryRelationship(boundaryRelationMap.get(id));
                     //Call create API
-                    diService.createOrUpdateBoundaries(boundaryRelationshipRequest, true);
+                    apiIntegrationService.sendRequestToAPI(boundaryRelationshipRequest, boundaryCreateUrl);
                 }
             }
             if (newandexistingskeys.containsKey(Constants.EXISTING_IDS)) {
                 for (String id : newandexistingskeys.get(Constants.EXISTING_IDS)) {
                     existingIds.add(boundaryRelationMap.get(id));
                     BoundaryRelationshipRequest boundaryRelationshipRequest = new BoundaryRelationshipRequest();
-                    boundaryRelationshipRequest.setRequestInfo(diService.formRequestInfo());
+                    boundaryRelationshipRequest.setRequestInfo(apiIntegrationService.formRequestInfo());
                     boundaryRelationshipRequest.setBoundaryRelationship(boundaryRelationMap.get(id));
                     //Call create API
-                    diService.createOrUpdateBoundaries(boundaryRelationshipRequest, false);
+                    apiIntegrationService.sendRequestToAPI(boundaryRelationshipRequest, boundaryUpdateUrl);
                 }
             }
         } catch (Exception e) {
-            throw new Exception("Error in callCreateOrUpdateFacilities: " + e.getMessage());
+            throw new Exception("Error in callCreateOrUpdate Boundary API: " + e.getMessage());
         }
     }
 }

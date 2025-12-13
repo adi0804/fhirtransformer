@@ -1,10 +1,13 @@
-package org.egov.fhirtransformer.service;
+package org.egov.fhirtransformer.mapping.requestBuilder;
 
 import org.egov.common.models.core.URLParams;
 import org.egov.common.models.facility.*;
-import org.egov.common.models.stock.*;
 import org.egov.fhirtransformer.common.Constants;
+import org.egov.fhirtransformer.service.ApiIntegrationService;
+import org.egov.fhirtransformer.utils.BundleBuilder;
+import org.egov.fhirtransformer.utils.MapUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -16,22 +19,27 @@ import java.util.List;
 public class LocationToFacilityService {
 
     @Autowired
-    private DataIntegrationService diService;
+    private ApiIntegrationService apiIntegrationService;
+
+    @Value("${facility.create.url}")
+    private String facilityCreateUrl;
+
+    @Value("${facility.update.url}")
+    private String facilityUpdateUrl;
+
 
     public HashMap<String, Integer> transformLocationToFacility(HashMap<String, Facility> facilityMap) throws Exception {
         HashMap<String, Integer> results = new HashMap<>();
         try{
             List<String> idList = new ArrayList<>(facilityMap.keySet());
             if (!idList.isEmpty()) {
-                HashMap<String, List<String>> newandexistingstocks = checkExistingFacilities(idList);
+                HashMap<String, List<String>> newAndExistingIdsMap = checkExistingFacilities(idList);
                 //call create or update based on existing or new stocks
-                callCreateOrUpdateFacilities(newandexistingstocks, facilityMap);
+                callCreateOrUpdateFacilities(newAndExistingIdsMap, facilityMap);
+
                 results.put(Constants.TOTAL_PROCESSED, facilityMap.size());
-                results.put(Constants.NEW_IDS,
-                        newandexistingstocks.getOrDefault(Constants.NEW_IDS, Collections.emptyList()).size());
-                results.put(Constants.EXISTING_IDS,
-                        newandexistingstocks.getOrDefault(Constants.EXISTING_IDS, Collections.emptyList()).size());
-                System.out.println(results);
+                results = BundleBuilder.fetchMetrics(results, newAndExistingIdsMap);
+
             }
         }
         catch (Exception e){
@@ -44,16 +52,16 @@ public class LocationToFacilityService {
 
         HashMap<String,List<String>> newandexistingids = new HashMap<>();
         try{
-            URLParams urlParams = diService.formURLParams(idList);
+            URLParams urlParams = apiIntegrationService.formURLParams(idList);
 
             FacilitySearch facilitySearch = new FacilitySearch();
             facilitySearch.setId(idList);
 
             FacilitySearchRequest facilitySearchRequest = new FacilitySearchRequest();
-            facilitySearchRequest.setRequestInfo(diService.formRequestInfo());
+            facilitySearchRequest.setRequestInfo(apiIntegrationService.formRequestInfo());
             facilitySearchRequest.setFacility(facilitySearch);
 
-            FacilityBulkResponse facilityBulkResponse = diService.fetchAllFacilities(urlParams, facilitySearchRequest);
+            FacilityBulkResponse facilityBulkResponse = apiIntegrationService.fetchAllFacilities(urlParams, facilitySearchRequest);
 
             if (facilityBulkResponse.getFacilities() == null){
                 newandexistingids.put(Constants.NEW_IDS, idList);
@@ -64,9 +72,7 @@ public class LocationToFacilityService {
                     existingIds.add(facility.getId());
                 }
                 List<String> newIds = new ArrayList<>(idList);
-                newIds.removeAll(existingIds);
-                newandexistingids.put(Constants.EXISTING_IDS, existingIds);
-                newandexistingids.put(Constants.NEW_IDS, newIds);
+                newandexistingids = MapUtils.splitNewAndExistingIDS(newIds, existingIds);
             }
             System.out.println(newandexistingids);
         } catch (Exception e){
@@ -85,10 +91,10 @@ public class LocationToFacilityService {
                 }
                 if (!newIds.isEmpty()) {
                     FacilityBulkRequest facilityBulkRequest = new FacilityBulkRequest();
-                    facilityBulkRequest.setRequestInfo(diService.formRequestInfo());
+                    facilityBulkRequest.setRequestInfo(apiIntegrationService.formRequestInfo());
                     facilityBulkRequest.setFacilities(newIds);
                     //Call create API
-                    diService.createOrUpdateFacilities(facilityBulkRequest, true);
+                    apiIntegrationService.sendRequestToAPI(facilityBulkRequest, facilityCreateUrl);
                 }
             }
             List<Facility> existingIds = new ArrayList<>();
@@ -99,10 +105,10 @@ public class LocationToFacilityService {
                 }
                 if (!existingIds.isEmpty()) {
                     FacilityBulkRequest facilityBulkRequest = new FacilityBulkRequest();
-                    facilityBulkRequest.setRequestInfo(diService.formRequestInfo());
+                    facilityBulkRequest.setRequestInfo(apiIntegrationService.formRequestInfo());
                     facilityBulkRequest.setFacilities(existingIds);
                     //Call create API
-                    diService.createOrUpdateFacilities(facilityBulkRequest, false);
+                    apiIntegrationService.sendRequestToAPI(facilityBulkRequest, facilityUpdateUrl);
                 }
             }
         } catch (Exception e) {

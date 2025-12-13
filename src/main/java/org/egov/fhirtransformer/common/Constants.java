@@ -55,6 +55,8 @@ public class Constants {
     public static final String FIRST_OFFSET = "&_offset=0";
     public static final String SET_TENANT_ID = "&tenantId=";
     public static final String SET_LIMIT = "?limit=";
+    public static final String LOCATION_PREFIX = "Location/";
+    public static final String ADMIN = "ADMIN";
 
     // ----- API PATH VALUES
     public static final String STOCKS_API_PATH= "/fetchAllStocks";
@@ -63,7 +65,7 @@ public class Constants {
     public static final String PRODUCT_VARIANT_API_PATH= "/fetchAllProductVariants";
 
     public static final String TENANT_ID = "mz";
-    public static final String NEW_IDS = "newIds";
-    public static final String EXISTING_IDS = "existingIds";
+    public static final String NEW_IDS = "newIDs";
+    public static final String EXISTING_IDS = "existingIDs";
     public static final String TOTAL_PROCESSED = "totalProcessed";
 }

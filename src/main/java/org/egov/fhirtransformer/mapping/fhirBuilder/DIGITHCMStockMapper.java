@@ -1,9 +1,10 @@
-package org.egov.fhirtransformer.fhirBuilder;
+package org.egov.fhirtransformer.mapping.fhirBuilder;
 
-import ca.uhn.fhir.context.FhirContext;
 import org.egov.common.models.stock.*;
 import org.egov.fhirtransformer.common.Constants;
 import org.hl7.fhir.r5.model.*;
+
+import java.time.OffsetDateTime;
 import java.util.UUID;
 import java.util.Date;
 
@@ -214,4 +215,37 @@ public class DIGITHCMStockMapper {
         return stock;
     }
 
+    public static StockReconciliation buildStockReconFromInventoryReport(InventoryReport inventoryReport) {
+
+        StockReconciliation stockRecon = new StockReconciliation();
+        //Defaulting the values for mandatory fields
+        stockRecon.setTenantId(Constants.TENANT_ID);
+        stockRecon.setReferenceId("add this");
+        stockRecon.setReferenceIdType("add this");
+
+        String reportedDateTime = inventoryReport.getReportedDateTimeElement().getValueAsString();
+        OffsetDateTime odt = OffsetDateTime.parse(reportedDateTime);
+        stockRecon.setDateOfReconciliation((long) odt.getDayOfMonth());
+
+        // Extract facility ID
+        System.out.println(inventoryReport.getInventoryListingFirstRep().getLocation().getType());
+        stockRecon.setFacilityId(
+                inventoryReport.getInventoryListingFirstRep()
+                        .getLocation()
+                        .getIdentifier()
+                        .getValue());
+
+        // Extract Product Variant ID
+        stockRecon.setProductVariantId(inventoryReport.getInventoryListingFirstRep()
+                        .getItemFirstRep()
+                        .getItem()
+                        .getReference()
+                        .getIdentifier()
+                        .getValue());
+
+        // this needs change
+        stockRecon.setCalculatedCount(inventoryReport.getInventoryListingFirstRep().getItemFirstRep().getQuantity().getValue().intValue());
+        stockRecon.setPhysicalCount(inventoryReport.getInventoryListingFirstRep().getItemFirstRep().getQuantity().getValue().intValue());
+        return stockRecon;
+    }
 }

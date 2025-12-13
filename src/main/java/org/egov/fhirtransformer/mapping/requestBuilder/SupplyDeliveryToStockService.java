@@ -1,10 +1,13 @@
-package org.egov.fhirtransformer.service;
+package org.egov.fhirtransformer.mapping.requestBuilder;
 
-import org.egov.common.contract.request.RequestInfo;
 import org.egov.common.models.core.URLParams;
 import org.egov.common.models.stock.*;
 import org.egov.fhirtransformer.common.Constants;
+import org.egov.fhirtransformer.service.ApiIntegrationService;
+import org.egov.fhirtransformer.utils.BundleBuilder;
+import org.egov.fhirtransformer.utils.MapUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -16,8 +19,13 @@ import java.util.List;
 public class SupplyDeliveryToStockService {
 
     @Autowired
-    private DataIntegrationService diService;
+    private ApiIntegrationService apiIntegrationService;
 
+    @Value("${stock.create.url}")
+    private String stockCreateUrl;
+
+    @Value("${stock.update.url}")
+    private String stockUpdateUrl;
 
     public HashMap<String, Integer> transformSupplyDeliveryToStock(HashMap<String, Stock> supplyDeliveryMap) throws Exception {
 
@@ -25,15 +33,13 @@ public class SupplyDeliveryToStockService {
         try{
             List<String> stockIds = new ArrayList<>(supplyDeliveryMap.keySet());
             if (!stockIds.isEmpty()) {
-                HashMap<String, List<String>> newandexistingstocks = checkExistingStocks(stockIds);
+                HashMap<String, List<String>> newAndExistingIdsMap = checkExistingStocks(stockIds);
                 //call create or update based on existing or new stocks
-                callCreateOrUpdateStocks(newandexistingstocks, supplyDeliveryMap);
+                callCreateOrUpdateStocks(newAndExistingIdsMap, supplyDeliveryMap);
+
                 results.put(Constants.TOTAL_PROCESSED, supplyDeliveryMap.size());
-                results.put(Constants.NEW_IDS,
-                        newandexistingstocks.getOrDefault(Constants.NEW_IDS, Collections.emptyList()).size());
-                results.put(Constants.EXISTING_IDS,
-                        newandexistingstocks.getOrDefault(Constants.EXISTING_IDS, Collections.emptyList()).size());
-                System.out.println(results);
+                results = BundleBuilder.fetchMetrics(results, newAndExistingIdsMap);
+
             }
         }
         catch (Exception e){
@@ -46,16 +52,16 @@ public class SupplyDeliveryToStockService {
 
         HashMap<String,List<String>> newandexistingids = new HashMap<>();
         try{
-            URLParams urlParams = diService.formURLParams(stockIds);
+            URLParams urlParams = apiIntegrationService.formURLParams(stockIds);
 
             StockSearch stockSearch = new StockSearch();
             stockSearch.setId(stockIds);
 
             StockSearchRequest stockSearchRequest = new StockSearchRequest();
-            stockSearchRequest.setRequestInfo(diService.formRequestInfo());
+            stockSearchRequest.setRequestInfo(apiIntegrationService.formRequestInfo());
             stockSearchRequest.setStock(stockSearch);
 
-            StockBulkResponse stockBulkResponse = diService.fetchAllStocks(urlParams, stockSearchRequest);
+            StockBulkResponse stockBulkResponse = apiIntegrationService.fetchAllStocks(urlParams, stockSearchRequest);
 
             if (stockBulkResponse.getStock() == null){
                 newandexistingids.put(Constants.NEW_IDS, stockIds);
@@ -66,9 +72,7 @@ public class SupplyDeliveryToStockService {
                     existingIds.add(stock.getId());
                 }
                 List<String> newIds = new ArrayList<>(stockIds);
-                newIds.removeAll(existingIds);
-                newandexistingids.put(Constants.EXISTING_IDS, existingIds);
-                newandexistingids.put(Constants.NEW_IDS, newIds);
+                newandexistingids = MapUtils.splitNewAndExistingIDS(newIds, existingIds);
             }
             System.out.println(newandexistingids);
         } catch (Exception e){
@@ -87,10 +91,10 @@ public class SupplyDeliveryToStockService {
                 }
                 if (!newStocks.isEmpty()) {
                     StockBulkRequest stockBulkRequest = new StockBulkRequest();
-                    stockBulkRequest.setRequestInfo(diService.formRequestInfo());
+                    stockBulkRequest.setRequestInfo(apiIntegrationService.formRequestInfo());
                     stockBulkRequest.setStock(newStocks);
                     //Call create API
-                    diService.createOrUpdateStocks(stockBulkRequest, true);
+                    apiIntegrationService.sendRequestToAPI(stockBulkRequest, stockCreateUrl);
                 }
             }
 
@@ -103,14 +107,14 @@ public class SupplyDeliveryToStockService {
                 }
                 if (!existingStocks.isEmpty()) {
                     StockBulkRequest stockBulkRequest = new StockBulkRequest();
-                    stockBulkRequest.setRequestInfo(diService.formRequestInfo());
+                    stockBulkRequest.setRequestInfo(apiIntegrationService.formRequestInfo());
                     stockBulkRequest.setStock(existingStocks);
                     //Call update API
-                    diService.createOrUpdateStocks(stockBulkRequest, false);
+                    apiIntegrationService.sendRequestToAPI(stockBulkRequest, stockUpdateUrl);
                 }
             }
         } catch (Exception e) {
-            throw new Exception("Error in callCreateOrUpdateStocks: " + e.getMessage());
+            throw new Exception("Error in callCreateOrUpdate Stocks: " + e.getMessage());
         }
     }
 }
