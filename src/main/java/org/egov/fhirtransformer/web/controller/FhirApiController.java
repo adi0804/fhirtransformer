@@ -55,6 +55,7 @@ public class FhirApiController {
     @PostMapping("/validate")
     public ResponseEntity<String> validateFHIR(@RequestBody String fhirJson) throws JsonProcessingException {
         ValidationResult result = ftService.validateFHIRResource(fhirJson);
+        System.out.println(result.getMessages());
         boolean isValid = result.isSuccessful();
         return ResponseEntity.ok(isValid ? "Valid FHIR resource" : "Invalid FHIR resource");
     }

@@ -29,7 +29,7 @@ public class BundleBuilder {
         for (InventoryReport report : inventoryReport) {
             bundle.addEntry()
                     .setResource(report)
-                    .setFullUrl("urn:uuid:" + report.getId());
+                    .setFullUrl("urn:uuid:" + UUID.randomUUID());
         }
 
         addBundleLink(bundle, urlParams, totalCount, Constants.STOCK_RECONCILIATION_API_PATH);
@@ -42,7 +42,7 @@ public class BundleBuilder {
         for (Location loc : location) {
             bundle.addEntry()
                     .setResource(loc)
-                    .setFullUrl("urn:uuid:" + loc.getId());
+                    .setFullUrl("urn:uuid:" + UUID.randomUUID());
         }
 
         addBundleLink(bundle, urlParams, totalCount, Constants.FACILITIES_API_PATH);
@@ -55,7 +55,7 @@ public class BundleBuilder {
         for (InventoryItem item : inventoryItem) {
             bundle.addEntry()
                     .setResource(item)
-                    .setFullUrl("urn:uuid:" + item.getId());
+                    .setFullUrl("urn:uuid:" + UUID.randomUUID());
         }
 
         addBundleLink(bundle, urlParams, totalCount, Constants.PRODUCT_VARIANT_API_PATH);
@@ -95,14 +95,14 @@ public class BundleBuilder {
 
     public static Bundle buildBoundaryLocationBundle(List<Location> locations){
         Bundle bundle = new Bundle();
-        bundle.setType(Bundle.BundleType.SEARCHSET);
+        bundle.setType(Bundle.BundleType.COLLECTION);
         bundle.setTimestamp(new Date());
         bundle.setId(UUID.randomUUID().toString());
 
         for (Location loc : locations) {
             bundle.addEntry()
                     .setResource(loc)
-                    .setFullUrl("urn:uuid:" + loc.getId());
+                    .setFullUrl("urn:uuid:" + UUID.randomUUID());
         }
         return bundle;
     }

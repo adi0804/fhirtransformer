@@ -53,6 +53,7 @@ public class FhirParseNLoadService {
         HashMap<String, Stock> supplyDeliveryMap = new HashMap<>();
         HashMap<String, Facility> facilityMap = new HashMap<>();
         HashMap<String, BoundaryRelation> boundaryRelationMap = new HashMap<>();
+
         // Process each entry in the bundle
         for (Bundle.BundleEntryComponent entry : bundle.getEntry()) {
             if (entry.getResource() instanceof SupplyDelivery) {
