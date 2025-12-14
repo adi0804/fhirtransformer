@@ -1,0 +1,61 @@
+{
+  "resourceType": "CodeSystem",
+  "title": "DIGITHCMFacilityUsage",
+  "url": "http://digit.org/fhir/CodeSystem/facilityUsage",
+  "status": "active",
+  "contact": [
+    {
+      "telecom": [
+        {
+          "system": "email",
+          "value": "contact@egovernments.org"
+        }
+      ],
+      "name": "eGov Foundation"
+    },
+    {
+      "telecom": [
+        {
+          "system": "email",
+          "value": "pmmrunal@gmail.com"
+        }
+      ],
+      "name": "Mrunal Surve"
+    }
+  ],
+  "compositional": false,
+  "content": "complete",
+  "concept": [
+    {
+      "code": "warehouse",
+      "display": "WAREHOUSE"
+    },
+    {
+      "code": "satellite warehouse",
+      "display": "SATELLITE WAREHOUSE"
+    },
+    {
+      "code": "port",
+      "display": "PORT"
+    },
+    {
+      "code": "phc",
+      "display": "PHC"
+    },
+    {
+      "code": "hospital",
+      "display": "HOSPITAL"
+    }
+  ],
+  "text": {
+    "status": "generated",
+    "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\"><h2>DIGITHCMFacilityUsage</h2><tt>http://digit.org/fhir/CodeSystem/facilityUsage</tt><p></p></div>"
+  },
+  "valueSet": "http://digit.org/fhir/ValueSet/facilityUsage",
+  "caseSensitive": true,
+  "experimental": false,
+  "date": "2025-07-13T00:00:00Z",
+  "publisher": "eGov Foundation",
+  "count": 5,
+  "name": "DIGITHCMFacilityUsage"
+}

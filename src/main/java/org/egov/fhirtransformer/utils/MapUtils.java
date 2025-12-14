@@ -1,0 +1,41 @@
+package org.egov.fhirtransformer.utils;
+
+import org.egov.fhirtransformer.common.Constants;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+
+/**
+ * Utility methods for safely extracting typed values from a Map.
+ */
+public final class MapUtils {
+
+    /**
+     * Retrieves a String value from the map.
+     * Returns null if the map, key, or value is null.
+     */
+    public static String getString(Map<String, Object> row, String key) {
+        Object value = row.get(key);
+        return value != null ? value.toString() : null;
+    }
+
+    /**
+     * Retrieves a Long value from the map.
+     * Works with Number and String types.
+     */
+    public static Long getLong(Map<String, Object> row, String key) {
+        Object value = row.get(key);
+        return value != null ? (Long) value : null;
+    }
+
+    public static HashMap<String, List<String>> splitNewAndExistingIDS(List<String> newIds, List<String> existingIds) {
+
+        HashMap<String,List<String>> newandexistingids = new HashMap<>();
+        newIds.removeAll(existingIds);
+        newandexistingids.put(Constants.EXISTING_IDS, existingIds);
+        newandexistingids.put(Constants.NEW_IDS, newIds);
+        return newandexistingids;
+    }
+}
