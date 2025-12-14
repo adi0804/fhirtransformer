@@ -2,7 +2,9 @@ package org.egov.fhirtransformer.service;
 
 import digit.web.models.BoundaryRelationshipSearchCriteria;
 import digit.web.models.BoundarySearchResponse;
+import org.checkerframework.checker.units.qual.C;
 import org.egov.common.contract.request.RequestInfo;
+import org.egov.common.contract.request.User;
 import org.egov.common.contract.response.ResponseInfo;
 import org.egov.common.models.core.URLParams;
 import org.egov.common.models.facility.FacilityBulkResponse;
@@ -20,6 +22,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class ApiIntegrationService {
@@ -187,6 +190,10 @@ public class ApiIntegrationService {
     public RequestInfo formRequestInfo() {
         RequestInfo requestInfo = new RequestInfo();
         requestInfo.setAuthToken("");
+        User user = new User();
+        user.setTenantId(Constants.TENANT_ID);
+        user.setUuid(UUID.randomUUID().toString());
+        requestInfo.setUserInfo(user);
         return requestInfo;
     }
 }

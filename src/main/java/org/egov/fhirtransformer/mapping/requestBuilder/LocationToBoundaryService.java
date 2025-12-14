@@ -31,8 +31,8 @@ public class LocationToBoundaryService {
     public HashMap<String, Integer> transformLocationToBoundary(HashMap<String, BoundaryRelation> boundaryRelationMap) throws Exception {
         HashMap<String, Integer> results = new HashMap<>();
         try{
-            boundaryRelationMap = updateBoundaryRelationParent(boundaryRelationMap);
-            System.out.println("updated parent boundary" + boundaryRelationMap);
+//            boundaryRelationMap = updateBoundaryRelationParent(boundaryRelationMap);
+//            System.out.println("updated parent boundary" + boundaryRelationMap);
             List<String> idList = new ArrayList<>(boundaryRelationMap.keySet());
             if (!idList.isEmpty()) {
                 HashMap<String, List<String>> newAndExistingIdsMap = checkExistingBoundaries(idList);

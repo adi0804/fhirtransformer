@@ -74,7 +74,6 @@ public class DIGITHCMBoundaryMapper {
                 boundaryRelation.setParent(partOfRef.getReference().substring(Constants.LOCATION_PREFIX.length()));
             }
         }
-
         return boundaryRelation;
     }
 

@@ -21,6 +21,8 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 import digit.web.models.BoundaryRelationshipSearchCriteria;
 import java.util.HashMap;
+import java.util.stream.Collectors;
+
 import org.slf4j.Logger;
 
 @RestController
@@ -50,7 +52,16 @@ public class FhirApiController {
     public ResponseEntity<String> validateFHIR(@RequestBody String fhirJson) throws JsonProcessingException {
         ValidationResult result = ftService.validateFHIRResource(fhirJson);
         boolean isValid = result.isSuccessful();
-        return ResponseEntity.ok(isValid ? "Valid FHIR resource" : "Invalid FHIR resource");
+        return ResponseEntity.ok(
+                isValid
+                        ? "Valid FHIR resource"
+                        : "Invalid FHIR resource. errors: [" +
+                        result.getMessages().stream()
+                                .filter(msg -> msg.getSeverity() != null && msg.getSeverity().name().equalsIgnoreCase("error"))
+                                .map(msg -> msg.getMessage())
+                                .collect(Collectors.joining(", "))
+                        + "]"
+        );
     }
 
 //    @GetMapping("/getFacilities")

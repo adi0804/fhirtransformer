@@ -32,13 +32,6 @@
             "source": "http://hl7.org/fhir/StructureDefinition/DomainResource"
           },
           {
-            "key": "dom-3",
-            "severity": "error",
-            "human": "If the resource is contained in another resource, it SHALL be referred to from elsewhere in the resource or SHALL refer to the containing resource",
-            "expression": "contained.where((('#'+id in (%resource.descendants().reference | %resource.descendants().ofType(canonical) | %resource.descendants().ofType(uri) | %resource.descendants().ofType(url))) or descendants().where(reference = '#').exists() or descendants().where(ofType(canonical) = '#').exists() or descendants().where(ofType(canonical) = '#').exists()).not()).trace('unmatched', id).empty()",
-            "source": "http://hl7.org/fhir/StructureDefinition/DomainResource"
-          },
-          {
             "key": "dom-4",
             "severity": "error",
             "human": "If a resource is contained in another resource, it SHALL NOT have a meta.versionId or a meta.lastUpdated",
@@ -46,10 +39,10 @@
             "source": "http://hl7.org/fhir/StructureDefinition/DomainResource"
           },
           {
-            "key": "dom-5",
+            "key": "dom-3",
             "severity": "error",
-            "human": "If a resource is contained in another resource, it SHALL NOT have a security label",
-            "expression": "contained.meta.security.empty()",
+            "human": "If the resource is contained in another resource, it SHALL be referred to from elsewhere in the resource or SHALL refer to the containing resource",
+            "expression": "contained.where((('#'+id in (%resource.descendants().reference | %resource.descendants().ofType(canonical) | %resource.descendants().ofType(uri) | %resource.descendants().ofType(url))) or descendants().where(reference = '#').exists() or descendants().where(ofType(canonical) = '#').exists() or descendants().where(ofType(canonical) = '#').exists()).not()).trace('unmatched', id).empty()",
             "source": "http://hl7.org/fhir/StructureDefinition/DomainResource"
           },
           {
@@ -68,19 +61,37 @@
             "human": "A resource should have narrative for robust management",
             "expression": "text.`div`.exists()",
             "source": "http://hl7.org/fhir/StructureDefinition/DomainResource"
+          },
+          {
+            "key": "dom-5",
+            "severity": "error",
+            "human": "If a resource is contained in another resource, it SHALL NOT have a security label",
+            "expression": "contained.meta.security.empty()",
+            "source": "http://hl7.org/fhir/StructureDefinition/DomainResource"
           }
         ],
         "mustSupport": false,
         "isModifier": false,
-        "isSummary": false,
         "mapping": [
           {
             "identity": "rim",
-            "map": "Entity, Role, or Act,.Role[classCode=SDLC]"
+            "map": "n/a"
+          },
+          {
+            "identity": "rim",
+            "map": "Entity. Role, or Act"
+          },
+          {
+            "identity": "rim",
+            "map": "Entity, Role, or Act"
           },
           {
             "identity": "w5",
             "map": "administrative.entity"
+          },
+          {
+            "identity": "rim",
+            "map": ".Role[classCode=SDLC]"
           },
           {
             "identity": "interface",
@@ -144,7 +155,17 @@
         ],
         "mustSupport": false,
         "isModifier": false,
-        "isSummary": true
+        "isSummary": true,
+        "mapping": [
+          {
+            "identity": "rim",
+            "map": "n/a"
+          },
+          {
+            "identity": "rim",
+            "map": "N/A"
+          }
+        ]
       },
       {
         "id": "Location.implicitRules",
@@ -176,7 +197,13 @@
         "mustSupport": false,
         "isModifier": true,
         "isModifierReason": "This element is labeled as a modifier because the implicit rules may provide additional knowledge about the resource that modifies its meaning or interpretation",
-        "isSummary": true
+        "isSummary": true,
+        "mapping": [
+          {
+            "identity": "rim",
+            "map": "n/a"
+          }
+        ]
       },
       {
         "id": "Location.language",
@@ -213,10 +240,6 @@
             {
               "url": "http://hl7.org/fhir/StructureDefinition/elementdefinition-bindingName",
               "valueString": "Language"
-            },
-            {
-              "url": "http://hl7.org/fhir/StructureDefinition/elementdefinition-isCommonBinding",
-              "valueBoolean": true
             }
           ],
           "strength": "required",
@@ -228,7 +251,13 @@
               "valueSet": "http://hl7.org/fhir/ValueSet/languages"
             }
           ]
-        }
+        },
+        "mapping": [
+          {
+            "identity": "rim",
+            "map": "n/a"
+          }
+        ]
       },
       {
         "id": "Location.text",
@@ -272,6 +301,14 @@
         "mapping": [
           {
             "identity": "rim",
+            "map": "n/a"
+          },
+          {
+            "identity": "rim",
+            "map": "N/A"
+          },
+          {
+            "identity": "rim",
             "map": "Act.text?"
           }
         ]
@@ -311,6 +348,14 @@
         "mapping": [
           {
             "identity": "rim",
+            "map": "n/a"
+          },
+          {
+            "identity": "rim",
+            "map": "Entity. Role, or Act"
+          },
+          {
+            "identity": "rim",
             "map": "N/A"
           }
         ]
@@ -325,7 +370,7 @@
               "path": "url"
             }
           ],
-          "ordered": false,
+          "description": "Extensions are always sliced by (at least) url",
           "rules": "open"
         },
         "short": "Additional content defined by implementations",
@@ -369,6 +414,10 @@
         "mapping": [
           {
             "identity": "rim",
+            "map": "n/a"
+          },
+          {
+            "identity": "rim",
             "map": "N/A"
           }
         ]
@@ -377,8 +426,8 @@
         "id": "Location.extension:locBoundaryGeojson",
         "path": "Location.extension",
         "sliceName": "locBoundaryGeojson",
-        "short": "When a boundary is available, the location-boundary-geojson extension should be used.",
-        "definition": "When a boundary is available, the location-boundary-geojson extension should be used with the given url, contentType, and data.",
+        "short": "A boundary shape that represents the outside edge of the location (in GeoJSON format)",
+        "definition": "A boundary shape that represents the outside edge of the location (in GeoJSON format) This shape may have holes, and disconnected shapes.",
         "comment": "The format of the content is GeoJSON in both the JSON and XML formats. It will be stored in the resource using the .data property, and externally referenced via the URL property. The mimetype to be used will be 'application/geo+json'.",
         "alias": [
           "extensions",
@@ -421,6 +470,10 @@
         "mapping": [
           {
             "identity": "rim",
+            "map": "n/a"
+          },
+          {
+            "identity": "rim",
             "map": "N/A"
           }
         ]
@@ -445,7 +498,7 @@
             "extension": [
               {
                 "url": "http://hl7.org/fhir/StructureDefinition/structuredefinition-fhir-type",
-                "valueUrl": "id"
+                "valueUrl": "string"
               }
             ],
             "code": "http://hl7.org/fhirpath/System.String"
@@ -454,8 +507,6 @@
         "condition": [
           "ele-1"
         ],
-        "isModifier": false,
-        "isSummary": false,
         "mapping": [
           {
             "identity": "rim",
@@ -484,7 +535,7 @@
           "user content"
         ],
         "min": 0,
-        "max": "*",
+        "max": "0",
         "base": {
           "path": "Element.extension",
           "min": 0,
@@ -511,12 +562,14 @@
             "source": "http://hl7.org/fhir/StructureDefinition/Extension"
           }
         ],
-        "isModifier": false,
-        "isSummary": false,
         "mapping": [
           {
             "identity": "rim",
             "map": "n/a"
+          },
+          {
+            "identity": "rim",
+            "map": "N/A"
           }
         ]
       },
@@ -548,8 +601,6 @@
           }
         ],
         "fixedUri": "http://hl7.org/fhir/StructureDefinition/location-boundary-geojson",
-        "isModifier": false,
-        "isSummary": false,
         "mapping": [
           {
             "identity": "rim",
@@ -560,6 +611,57 @@
       {
         "id": "Location.extension:locBoundaryGeojson.value[x]",
         "path": "Location.extension.value[x]",
+        "slicing": {
+          "discriminator": [
+            {
+              "type": "type",
+              "path": "$this"
+            }
+          ],
+          "ordered": false,
+          "rules": "open"
+        },
+        "short": "Value of extension",
+        "definition": "Value of extension - must be one of a constrained set of the data types (see [Extensibility](extensibility.html) for a list).",
+        "min": 1,
+        "max": "1",
+        "base": {
+          "path": "Extension.value[x]",
+          "min": 0,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "Attachment"
+          }
+        ],
+        "condition": [
+          "ext-1"
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "rim",
+            "map": "n/a"
+          },
+          {
+            "identity": "rim",
+            "map": "N/A"
+          }
+        ]
+      },
+      {
+        "id": "Location.extension:locBoundaryGeojson.value[x]:valueAttachment",
+        "path": "Location.extension.value[x]",
+        "sliceName": "valueAttachment",
         "short": "Value of extension",
         "definition": "Value of extension - must be one of a constrained set of the data types (see [Extensibility](extensibility.html) for a list).",
         "min": 0,
@@ -586,9 +688,11 @@
             "source": "http://hl7.org/fhir/StructureDefinition/Element"
           }
         ],
-        "isModifier": false,
-        "isSummary": false,
         "mapping": [
+          {
+            "identity": "rim",
+            "map": "n/a"
+          },
           {
             "identity": "rim",
             "map": "N/A"
@@ -596,7 +700,7 @@
         ]
       },
       {
-        "id": "Location.extension:locBoundaryGeojson.value[x].id",
+        "id": "Location.extension:locBoundaryGeojson.value[x]:valueAttachment.id",
         "path": "Location.extension.value[x].id",
         "representation": [
           "xmlAttr"
@@ -624,8 +728,6 @@
         "condition": [
           "ele-1"
         ],
-        "isModifier": false,
-        "isSummary": false,
         "mapping": [
           {
             "identity": "rim",
@@ -634,7 +736,7 @@
         ]
       },
       {
-        "id": "Location.extension:locBoundaryGeojson.value[x].extension",
+        "id": "Location.extension:locBoundaryGeojson.value[x]:valueAttachment.extension",
         "path": "Location.extension.value[x].extension",
         "slicing": {
           "discriminator": [
@@ -681,8 +783,603 @@
             "source": "http://hl7.org/fhir/StructureDefinition/Extension"
           }
         ],
-        "isModifier": false,
-        "isSummary": false,
+        "mapping": [
+          {
+            "identity": "rim",
+            "map": "n/a"
+          },
+          {
+            "identity": "rim",
+            "map": "N/A"
+          }
+        ]
+      },
+      {
+        "id": "Location.extension:locBoundaryGeojson.value[x]:valueAttachment.contentType",
+        "path": "Location.extension.value[x].contentType",
+        "short": "Mime type of the content, with charset etc.",
+        "definition": "Identifies the type of the data in the attachment and allows a method to be chosen to interpret or render the data. Includes mime type parameters such as charset where appropriate.",
+        "comment": "Note that FHIR strings SHALL NOT exceed 1,048,576 (1024*1024) characters in size",
+        "requirements": "Processors of the data need to be able to know how to interpret the data.",
+        "min": 0,
+        "max": "1",
+        "base": {
+          "path": "Attachment.contentType",
+          "min": 0,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "code"
+          }
+        ],
+        "example": [
+          {
+            "label": "General",
+            "valueCode": "text/plain; charset=UTF-8, image/png"
+          }
+        ],
+        "condition": [
+          "att-1"
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "isSummary": true,
+        "binding": {
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/tools/StructureDefinition/binding-definition",
+              "valueString": "The mime type of an attachment. Any valid mime type is allowed."
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/elementdefinition-bindingName",
+              "valueString": "MimeType"
+            }
+          ],
+          "strength": "required",
+          "description": "BCP 13 (RFCs 2045, 2046, 2047, 4288, 4289 and 2049)",
+          "valueSet": "http://hl7.org/fhir/ValueSet/mimetypes|5.0.0"
+        },
+        "mapping": [
+          {
+            "identity": "rim",
+            "map": "n/a"
+          },
+          {
+            "identity": "v2",
+            "map": "ED.2+ED.3/RP.2+RP.3. Note conversion may be needed if old style values are being used"
+          },
+          {
+            "identity": "rim",
+            "map": "./mediaType, ./charset"
+          }
+        ]
+      },
+      {
+        "id": "Location.extension:locBoundaryGeojson.value[x]:valueAttachment.language",
+        "path": "Location.extension.value[x].language",
+        "short": "Human language of the content (BCP-47)",
+        "definition": "The human language of the content. The value can be any valid value according to BCP 47.",
+        "comment": "Note that FHIR strings SHALL NOT exceed 1,048,576 (1024*1024) characters in size",
+        "requirements": "Users need to be able to choose between the languages in a set of attachments.",
+        "min": 0,
+        "max": "1",
+        "base": {
+          "path": "Attachment.language",
+          "min": 0,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "code"
+          }
+        ],
+        "example": [
+          {
+            "label": "General",
+            "valueCode": "en-AU"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "isSummary": true,
+        "binding": {
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/tools/StructureDefinition/binding-definition",
+              "valueString": "IETF language tag for a human language."
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/elementdefinition-bindingName",
+              "valueString": "Language"
+            }
+          ],
+          "strength": "required",
+          "description": "IETF language tag for a human language.",
+          "valueSet": "http://hl7.org/fhir/ValueSet/all-languages|5.0.0",
+          "additional": [
+            {
+              "purpose": "starter",
+              "valueSet": "http://hl7.org/fhir/ValueSet/languages"
+            }
+          ]
+        },
+        "mapping": [
+          {
+            "identity": "rim",
+            "map": "n/a"
+          },
+          {
+            "identity": "rim",
+            "map": "./language"
+          }
+        ]
+      },
+      {
+        "id": "Location.extension:locBoundaryGeojson.value[x]:valueAttachment.data",
+        "path": "Location.extension.value[x].data",
+        "short": "Data inline, base64ed",
+        "definition": "The actual data of the attachment - a sequence of bytes, base64 encoded.",
+        "comment": "The base64-encoded data SHALL be expressed in the same character set as the base resource XML or JSON.",
+        "requirements": "The data needs to able to be transmitted inline.",
+        "min": 1,
+        "max": "1",
+        "base": {
+          "path": "Attachment.data",
+          "min": 0,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "base64Binary"
+          }
+        ],
+        "condition": [
+          "att-1"
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "rim",
+            "map": "n/a"
+          },
+          {
+            "identity": "v2",
+            "map": "ED.5"
+          },
+          {
+            "identity": "rim",
+            "map": "./data"
+          }
+        ]
+      },
+      {
+        "id": "Location.extension:locBoundaryGeojson.value[x]:valueAttachment.url",
+        "path": "Location.extension.value[x].url",
+        "short": "Uri where the data can be found",
+        "definition": "A location where the data can be accessed.",
+        "comment": "If both data and url are provided, the url SHALL point to the same content as the data contains. Urls may be relative references or may reference transient locations such as a wrapping envelope using cid: though this has ramifications for using signatures. Relative URLs are interpreted relative to the service url, like a resource reference, rather than relative to the resource itself. If a URL is provided, it SHALL resolve to actual data.",
+        "requirements": "The data needs to be transmitted by reference.",
+        "min": 0,
+        "max": "1",
+        "base": {
+          "path": "Attachment.url",
+          "min": 0,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "url"
+          }
+        ],
+        "example": [
+          {
+            "label": "General",
+            "valueUrl": "http://www.acme.com/logo-small.png"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "isSummary": true,
+        "mapping": [
+          {
+            "identity": "rim",
+            "map": "n/a"
+          },
+          {
+            "identity": "v2",
+            "map": "RP.1+RP.2 - if they refer to a URL (see v2.6)"
+          },
+          {
+            "identity": "rim",
+            "map": "./reference/literal"
+          }
+        ]
+      },
+      {
+        "id": "Location.extension:locBoundaryGeojson.value[x]:valueAttachment.size",
+        "path": "Location.extension.value[x].size",
+        "short": "Number of bytes of content (if url provided)",
+        "definition": "The number of bytes of data that make up this attachment (before base64 encoding, if that is done).",
+        "comment": "The number of bytes is redundant if the data is provided as a base64binary, but is useful if the data is provided as a url reference.",
+        "requirements": "Representing the size allows applications to determine whether they should fetch the content automatically in advance, or refuse to fetch it at all.",
+        "min": 0,
+        "max": "1",
+        "base": {
+          "path": "Attachment.size",
+          "min": 0,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "integer64"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "isSummary": true,
+        "mapping": [
+          {
+            "identity": "rim",
+            "map": "n/a"
+          },
+          {
+            "identity": "rim",
+            "map": "N/A (needs data type R3 proposal)"
+          }
+        ]
+      },
+      {
+        "id": "Location.extension:locBoundaryGeojson.value[x]:valueAttachment.hash",
+        "path": "Location.extension.value[x].hash",
+        "short": "Hash of the data (sha-1, base64ed)",
+        "definition": "The calculated hash of the data using SHA-1. Represented using base64.",
+        "comment": "The hash is calculated on the data prior to base64 encoding, if the data is based64 encoded. The hash is not intended to support digital signatures. Where protection against malicious threats a digital signature should be considered, see [Provenance.signature](provenance-definitions.html#Provenance.signature) for mechanism to protect a resource with a digital signature.",
+        "requirements": "Included so that applications can verify that the contents of a location have not changed due to technical failures (e.g., storage rot, transport glitch, incorrect version).",
+        "min": 0,
+        "max": "1",
+        "base": {
+          "path": "Attachment.hash",
+          "min": 0,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "base64Binary"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "isSummary": true,
+        "mapping": [
+          {
+            "identity": "rim",
+            "map": "n/a"
+          },
+          {
+            "identity": "rim",
+            "map": ".integrityCheck[parent::ED/integrityCheckAlgorithm=\"SHA-1\"]"
+          }
+        ]
+      },
+      {
+        "id": "Location.extension:locBoundaryGeojson.value[x]:valueAttachment.title",
+        "extension": [
+          {
+            "url": "http://hl7.org/fhir/StructureDefinition/elementdefinition-translatable",
+            "valueBoolean": true
+          },
+          {
+            "url": "http://hl7.org/fhir/StructureDefinition/elementdefinition-translatable",
+            "valueBoolean": true
+          }
+        ],
+        "path": "Location.extension.value[x].title",
+        "short": "Label to display in place of the data",
+        "definition": "A label or set of text to display in place of the data.",
+        "comment": "May sometimes be derived from the source filename.",
+        "requirements": "Applications need a label to display to a human user in place of the actual data if the data cannot be rendered or perceived by the viewer.",
+        "min": 0,
+        "max": "1",
+        "base": {
+          "path": "Attachment.title",
+          "min": 0,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "string"
+          }
+        ],
+        "example": [
+          {
+            "label": "General",
+            "valueString": "Official Corporate Logo"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "isSummary": true,
+        "mapping": [
+          {
+            "identity": "rim",
+            "map": "n/a"
+          },
+          {
+            "identity": "rim",
+            "map": "./title/data"
+          }
+        ]
+      },
+      {
+        "id": "Location.extension:locBoundaryGeojson.value[x]:valueAttachment.creation",
+        "path": "Location.extension.value[x].creation",
+        "short": "Date attachment was first created",
+        "definition": "The date that the attachment was first created.",
+        "comment": "UTC offset is allowed for dates and partial dates",
+        "requirements": "This is often tracked as an integrity issue for use of the attachment.",
+        "min": 0,
+        "max": "1",
+        "base": {
+          "path": "Attachment.creation",
+          "min": 0,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "dateTime"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "isSummary": true,
+        "mapping": [
+          {
+            "identity": "rim",
+            "map": "n/a"
+          },
+          {
+            "identity": "rim",
+            "map": "N/A (needs data type R3 proposal)"
+          }
+        ]
+      },
+      {
+        "id": "Location.extension:locBoundaryGeojson.value[x]:valueAttachment.height",
+        "path": "Location.extension.value[x].height",
+        "short": "Height of the image in pixels (photo/video)",
+        "definition": "Height of the image in pixels (photo/video).",
+        "comment": "32 bit number; for values larger than this, use decimal",
+        "min": 0,
+        "max": "1",
+        "base": {
+          "path": "Attachment.height",
+          "min": 0,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "positiveInt"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "rim",
+            "map": "n/a"
+          },
+          {
+            "identity": "rim",
+            "map": ".outboundRelationship[typeCode=\"COMP].target[classCode=\"OBS\", moodCode=\"EVN\",code=\"<CODE>\"].value"
+          }
+        ]
+      },
+      {
+        "id": "Location.extension:locBoundaryGeojson.value[x]:valueAttachment.width",
+        "path": "Location.extension.value[x].width",
+        "short": "Width of the image in pixels (photo/video)",
+        "definition": "Width of the image in pixels (photo/video).",
+        "comment": "32 bit number; for values larger than this, use decimal",
+        "min": 0,
+        "max": "1",
+        "base": {
+          "path": "Attachment.width",
+          "min": 0,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "positiveInt"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "rim",
+            "map": "n/a"
+          },
+          {
+            "identity": "rim",
+            "map": ".outboundRelationship[typeCode=\"COMP].target[classCode=\"OBS\", moodCode=\"EVN\",code=\"<CODE>\"].value"
+          }
+        ]
+      },
+      {
+        "id": "Location.extension:locBoundaryGeojson.value[x]:valueAttachment.frames",
+        "path": "Location.extension.value[x].frames",
+        "short": "Number of frames if > 1 (photo)",
+        "definition": "The number of frames in a photo. This is used with a multi-page fax, or an imaging acquisition context that takes multiple slices in a single image, or an animated gif. If there is more than one frame, this SHALL have a value in order to alert interface software that a multi-frame capable rendering widget is required.",
+        "comment": "if the number of frames is not supplied, the value may be unknown. Applications should not assume that there is only one frame unless it is explicitly stated.",
+        "min": 0,
+        "max": "1",
+        "base": {
+          "path": "Attachment.frames",
+          "min": 0,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "positiveInt"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "rim",
+            "map": "n/a"
+          },
+          {
+            "identity": "rim",
+            "map": ".outboundRelationship[typeCode=\"COMP].target[classCode=\"OBS\", moodCode=\"EVN\",code=\"<CODE>\"].value"
+          }
+        ]
+      },
+      {
+        "id": "Location.extension:locBoundaryGeojson.value[x]:valueAttachment.duration",
+        "path": "Location.extension.value[x].duration",
+        "short": "Length in seconds (audio / video)",
+        "definition": "The duration of the recording in seconds - for audio and video.",
+        "comment": "The duration might differ from occurrencePeriod if recording was paused.",
+        "min": 0,
+        "max": "1",
+        "base": {
+          "path": "Attachment.duration",
+          "min": 0,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "decimal"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "rim",
+            "map": "n/a"
+          },
+          {
+            "identity": "rim",
+            "map": ".outboundRelationship[typeCode=\"COMP].target[classCode=\"OBS\", moodCode=\"EVN\",code=\"<CODE>\"].value"
+          }
+        ]
+      },
+      {
+        "id": "Location.extension:locBoundaryGeojson.value[x]:valueAttachment.pages",
+        "path": "Location.extension.value[x].pages",
+        "short": "Number of printed pages",
+        "definition": "The number of pages when printed.",
+        "comment": "32 bit number; for values larger than this, use decimal",
+        "min": 0,
+        "max": "1",
+        "base": {
+          "path": "Attachment.pages",
+          "min": 0,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "positiveInt"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
         "mapping": [
           {
             "identity": "rim",
@@ -691,19 +1388,18 @@
         ]
       },
       {
-        "id": "Location.extension:locBoundaryGeojson.valueAttachment.data",
-        "path": "Location.extension.valueAttachment.data",
-        "min": 1,
-        "max": "1",
-        "base": {
-          "path": "Attachment.data",
-          "min": 0,
-          "max": "1"
-        }
-      },
-      {
         "id": "Location.modifierExtension",
         "path": "Location.modifierExtension",
+        "slicing": {
+          "discriminator": [
+            {
+              "type": "value",
+              "path": "url"
+            }
+          ],
+          "description": "Extensions are always sliced by (at least) url",
+          "rules": "open"
+        },
         "short": "Extensions that cannot be ignored",
         "definition": "May be used to represent additional information that is not part of the basic definition of the resource and that modifies the understanding of the element that contains it and/or the understanding of the containing element's descendants. Usually modifier elements provide negation or qualification. To make the use of extensions safe and managable, there is a strict set of governance applied to the definition and use of extensions. Though any implementer is allowed to define an extension, there is a set of requirements that SHALL be met as part of the definition of the extension. Applications processing a resource are required to check for modifier extensions.\n\nModifier extensions SHALL NOT change the meaning of any elements on Resource or DomainResource (including cannot change the meaning of modifierExtension itself).",
         "comment": "There can be no stigma associated with the use of extensions by any application, project, or standard - regardless of the institution or jurisdiction that uses or defines the extensions.  The use of extensions is what allows the FHIR specification to retain a core level of simplicity for everyone.",
@@ -747,6 +1443,10 @@
         "mapping": [
           {
             "identity": "rim",
+            "map": "n/a"
+          },
+          {
+            "identity": "rim",
             "map": "N/A"
           }
         ]
@@ -756,6 +1456,7 @@
         "path": "Location.identifier",
         "short": "Unique code or number identifying the location to its users",
         "definition": "Unique code or number identifying the location to its users.",
+        "comment": "The rules of the identifier.type  determine if a check digit is part of the ID value or sent separately, such as through the checkDigit extension.",
         "requirements": "Organization label locations in registries, need to keep track of those.",
         "min": 1,
         "max": "*",
@@ -779,12 +1480,35 @@
             "human": "All FHIR elements must have a @value or children",
             "expression": "hasValue() or (children().count() > id.count())",
             "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          },
+          {
+            "key": "ident-1",
+            "severity": "warning",
+            "human": "Identifier with no value has limited utility.  If communicating that an identifier value has been suppressed or missing, the value element SHOULD be present with an extension indicating the missing semantic - e.g. data-absent-reason",
+            "expression": "value.exists()",
+            "source": "http://hl7.org/fhir/StructureDefinition/Identifier"
           }
         ],
         "mustSupport": false,
         "isModifier": false,
         "isSummary": true,
         "mapping": [
+          {
+            "identity": "rim",
+            "map": "n/a"
+          },
+          {
+            "identity": "v2",
+            "map": "CX / EI (occasionally, more often EI maps to a resource id or a URL)"
+          },
+          {
+            "identity": "rim",
+            "map": "II - The Identifier class is a little looser than the v3 type II because it allows URIs as well as registered OIDs or GUIDs.  Also maps to Role[classCode=IDENT]"
+          },
+          {
+            "identity": "servd",
+            "map": "Identifier"
+          },
           {
             "identity": "w5",
             "map": "FiveWs.identifier"
@@ -819,7 +1543,7 @@
             "extension": [
               {
                 "url": "http://hl7.org/fhir/StructureDefinition/structuredefinition-fhir-type",
-                "valueUrl": "id"
+                "valueUrl": "string"
               }
             ],
             "code": "http://hl7.org/fhirpath/System.String"
@@ -828,8 +1552,6 @@
         "condition": [
           "ele-1"
         ],
-        "isModifier": false,
-        "isSummary": false,
         "mapping": [
           {
             "identity": "rim",
@@ -885,12 +1607,14 @@
             "source": "http://hl7.org/fhir/StructureDefinition/Extension"
           }
         ],
-        "isModifier": false,
-        "isSummary": false,
         "mapping": [
           {
             "identity": "rim",
             "map": "n/a"
+          },
+          {
+            "identity": "rim",
+            "map": "N/A"
           }
         ]
       },
@@ -942,6 +1666,10 @@
         },
         "mapping": [
           {
+            "identity": "rim",
+            "map": "n/a"
+          },
+          {
             "identity": "v2",
             "map": "N/A"
           },
@@ -979,7 +1707,6 @@
             "source": "http://hl7.org/fhir/StructureDefinition/Element"
           }
         ],
-        "isModifier": false,
         "isSummary": true,
         "binding": {
           "extension": [
@@ -990,10 +1717,6 @@
             {
               "url": "http://hl7.org/fhir/StructureDefinition/elementdefinition-bindingName",
               "valueString": "IdentifierType"
-            },
-            {
-              "url": "http://hl7.org/fhir/StructureDefinition/elementdefinition-isCommonBinding",
-              "valueBoolean": true
             }
           ],
           "strength": "extensible",
@@ -1001,6 +1724,22 @@
           "valueSet": "http://hl7.org/fhir/ValueSet/identifier-type"
         },
         "mapping": [
+          {
+            "identity": "rim",
+            "map": "n/a"
+          },
+          {
+            "identity": "v2",
+            "map": "CE/CNE/CWE"
+          },
+          {
+            "identity": "rim",
+            "map": "CD"
+          },
+          {
+            "identity": "orim",
+            "map": "fhir:CodeableConcept rdfs:subClassOf dt:CD"
+          },
           {
             "identity": "v2",
             "map": "CX.5"
@@ -1049,9 +1788,12 @@
             "source": "http://hl7.org/fhir/StructureDefinition/Element"
           }
         ],
-        "isModifier": false,
         "isSummary": true,
         "mapping": [
+          {
+            "identity": "rim",
+            "map": "n/a"
+          },
           {
             "identity": "v2",
             "map": "CX.4 / EI-2-4"
@@ -1102,9 +1844,12 @@
             "source": "http://hl7.org/fhir/StructureDefinition/Element"
           }
         ],
-        "isModifier": false,
         "isSummary": true,
         "mapping": [
+          {
+            "identity": "rim",
+            "map": "n/a"
+          },
           {
             "identity": "v2",
             "map": "CX.1 / EI.1"
@@ -1124,6 +1869,7 @@
         "path": "Location.identifier.period",
         "short": "Time period when id is/was valid for use",
         "definition": "Time period during which identifier is/was valid for use.",
+        "comment": "A Period specifies a range of time; the context of use will specify whether the entire range applies (e.g. \"the patient was an inpatient of the hospital for this time range\") or one value from the range applies (e.g. \"give to the patient between these two times\").\n\nPeriod is not used for a duration (a measure of elapsed time). See [Duration](datatypes.html#Duration).",
         "min": 0,
         "max": "1",
         "base": {
@@ -1143,11 +1889,29 @@
             "human": "All FHIR elements must have a @value or children",
             "expression": "hasValue() or (children().count() > id.count())",
             "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          },
+          {
+            "key": "per-1",
+            "severity": "error",
+            "human": "If present, start SHALL have a lower or equal value than end",
+            "expression": "start.hasValue().not() or end.hasValue().not() or (start.lowBoundary() <= end.highBoundary())",
+            "source": "http://hl7.org/fhir/StructureDefinition/Period"
           }
         ],
-        "isModifier": false,
         "isSummary": true,
         "mapping": [
+          {
+            "identity": "rim",
+            "map": "n/a"
+          },
+          {
+            "identity": "v2",
+            "map": "DR"
+          },
+          {
+            "identity": "rim",
+            "map": "IVL<TS>[lowClosed=\"true\" and highClosed=\"true\"] or URG<TS>[lowClosed=\"true\" and highClosed=\"true\"]"
+          },
           {
             "identity": "v2",
             "map": "CX.7 + CX.8"
@@ -1190,11 +1954,32 @@
             "human": "All FHIR elements must have a @value or children",
             "expression": "hasValue() or (children().count() > id.count())",
             "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          },
+          {
+            "key": "ref-1",
+            "severity": "error",
+            "human": "SHALL have a contained resource if a local reference is provided",
+            "expression": "reference.exists()  implies (reference.startsWith('#').not() or (reference.substring(1).trace('url') in %rootResource.contained.id.trace('ids')) or (reference='#' and %rootResource!=%resource))",
+            "source": "http://hl7.org/fhir/StructureDefinition/Reference"
+          },
+          {
+            "key": "ref-2",
+            "severity": "error",
+            "human": "At least one of reference, identifier and display SHALL be present (unless an extension is provided).",
+            "expression": "reference.exists() or identifier.exists() or display.exists() or extension.exists()",
+            "source": "http://hl7.org/fhir/StructureDefinition/Reference"
           }
         ],
-        "isModifier": false,
         "isSummary": true,
         "mapping": [
+          {
+            "identity": "rim",
+            "map": "n/a"
+          },
+          {
+            "identity": "rim",
+            "map": "The target of a resource reference is a RIM entry point (Act, Role, or Entity)"
+          },
           {
             "identity": "v2",
             "map": "CX.4 / (CX.4,CX.9,CX.10)"
@@ -1214,6 +1999,7 @@
         "path": "Location.status",
         "short": "active | suspended | inactive",
         "definition": "The status property covers the general availability of the resource, not the current value which may be covered by the operationStatus, or by a schedule/slots if they are configured for the location.",
+        "comment": "Note that FHIR strings SHALL NOT exceed 1,048,576 (1024*1024) characters in size",
         "min": 1,
         "max": "1",
         "base": {
@@ -1252,6 +2038,10 @@
         },
         "mapping": [
           {
+            "identity": "rim",
+            "map": "n/a"
+          },
+          {
             "identity": "w5",
             "map": "FiveWs.status"
           },
@@ -1270,6 +2060,7 @@
         "path": "Location.operationalStatus",
         "short": "The operational status of the location (typically only for a bed/room)",
         "definition": "The operational status covers operation values most relevant to beds (but can also apply to rooms/units/chairs/etc. such as an isolation unit/dialysis chair). This typically covers concepts such as contamination, housekeeping, and other activities like maintenance.",
+        "comment": "Codes may be defined very casually in enumerations or code lists, up to very formal definitions such as SNOMED CT - see the HL7 v3 Core Principles for more information.",
         "min": 0,
         "max": "1",
         "base": {
@@ -1289,6 +2080,13 @@
             "human": "All FHIR elements must have a @value or children",
             "expression": "hasValue() or (children().count() > id.count())",
             "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          },
+          {
+            "key": "cod-1",
+            "severity": "warning",
+            "human": "A Coding SHOULD NOT have a display unless a code is also present.  Computation on Coding.display alone is generally unsafe.  Consider using CodeableConcept.text",
+            "expression": "code.exists().not() implies display.exists().not()",
+            "source": "http://hl7.org/fhir/StructureDefinition/Coding"
           }
         ],
         "mustSupport": false,
@@ -1307,12 +2105,24 @@
         },
         "mapping": [
           {
-            "identity": "w5",
-            "map": "FiveWs.status"
+            "identity": "rim",
+            "map": "n/a"
+          },
+          {
+            "identity": "v2",
+            "map": "CE/CNE/CWE subset one of the sets of component 1-3 or 4-6"
           },
           {
             "identity": "rim",
-            "map": "n/a"
+            "map": "CV"
+          },
+          {
+            "identity": "orim",
+            "map": "fhir:Coding rdfs:subClassOf dt:CDCoding"
+          },
+          {
+            "identity": "w5",
+            "map": "FiveWs.status"
           }
         ]
       },
@@ -1347,6 +2157,10 @@
         "isModifier": false,
         "isSummary": true,
         "mapping": [
+          {
+            "identity": "rim",
+            "map": "n/a"
+          },
           {
             "identity": "rim",
             "map": ".name"
@@ -1391,6 +2205,10 @@
         "mapping": [
           {
             "identity": "rim",
+            "map": "n/a"
+          },
+          {
+            "identity": "rim",
             "map": ".name"
           }
         ]
@@ -1400,6 +2218,7 @@
         "path": "Location.description",
         "short": "Additional details about the location that could be displayed as further information to identify the location beyond its name",
         "definition": "Description of the Location, which helps in finding or referencing the place.",
+        "comment": "Systems are not required to have markdown support, so the text should be readable without markdown processing. The markdown syntax is GFM - see https://github.github.com/gfm/",
         "requirements": "Humans need additional information to verify a correct location has been identified.",
         "min": 0,
         "max": "1",
@@ -1426,6 +2245,10 @@
         "isModifier": false,
         "isSummary": true,
         "mapping": [
+          {
+            "identity": "rim",
+            "map": "n/a"
+          },
           {
             "identity": "rim",
             "map": ".playingEntity[classCode=PLC determinerCode=INSTANCE].desc"
@@ -1476,6 +2299,10 @@
         },
         "mapping": [
           {
+            "identity": "rim",
+            "map": "n/a"
+          },
+          {
             "identity": "w5",
             "map": "FiveWs.class"
           },
@@ -1499,6 +2326,7 @@
         },
         "short": "Type of function performed",
         "definition": "Indicates the type of function performed at the location.",
+        "comment": "Not all terminology uses fit this general pattern. In some cases, models should not use CodeableConcept and use Coding directly and provide their own structure for managing text, codings, translations and the relationship between elements and pre- and post-coordination.",
         "min": 1,
         "max": "*",
         "base": {
@@ -1536,6 +2364,22 @@
         },
         "mapping": [
           {
+            "identity": "rim",
+            "map": "n/a"
+          },
+          {
+            "identity": "v2",
+            "map": "CE/CNE/CWE"
+          },
+          {
+            "identity": "rim",
+            "map": "CD"
+          },
+          {
+            "identity": "orim",
+            "map": "fhir:CodeableConcept rdfs:subClassOf dt:CD"
+          },
+          {
             "identity": "w5",
             "map": "FiveWs.class"
           },
@@ -1551,6 +2395,7 @@
         "sliceName": "jurisdiction",
         "short": "Type of function performed",
         "definition": "Indicates the type of function performed at the location.",
+        "comment": "Not all terminology uses fit this general pattern. In some cases, models should not use CodeableConcept and use Coding directly and provide their own structure for managing text, codings, translations and the relationship between elements and pre- and post-coordination.",
         "min": 1,
         "max": "1",
         "base": {
@@ -1596,6 +2441,22 @@
         },
         "mapping": [
           {
+            "identity": "rim",
+            "map": "n/a"
+          },
+          {
+            "identity": "v2",
+            "map": "CE/CNE/CWE"
+          },
+          {
+            "identity": "rim",
+            "map": "CD"
+          },
+          {
+            "identity": "orim",
+            "map": "fhir:CodeableConcept rdfs:subClassOf dt:CD"
+          },
+          {
             "identity": "w5",
             "map": "FiveWs.class"
           },
@@ -1625,7 +2486,7 @@
             "extension": [
               {
                 "url": "http://hl7.org/fhir/StructureDefinition/structuredefinition-fhir-type",
-                "valueUrl": "id"
+                "valueUrl": "string"
               }
             ],
             "code": "http://hl7.org/fhirpath/System.String"
@@ -1634,8 +2495,6 @@
         "condition": [
           "ele-1"
         ],
-        "isModifier": false,
-        "isSummary": false,
         "mapping": [
           {
             "identity": "rim",
@@ -1691,12 +2550,14 @@
             "source": "http://hl7.org/fhir/StructureDefinition/Extension"
           }
         ],
-        "isModifier": false,
-        "isSummary": false,
         "mapping": [
           {
             "identity": "rim",
             "map": "n/a"
+          },
+          {
+            "identity": "rim",
+            "map": "N/A"
           }
         ]
       },
@@ -1726,11 +2587,33 @@
             "human": "All FHIR elements must have a @value or children",
             "expression": "hasValue() or (children().count() > id.count())",
             "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          },
+          {
+            "key": "cod-1",
+            "severity": "warning",
+            "human": "A Coding SHOULD NOT have a display unless a code is also present.  Computation on Coding.display alone is generally unsafe.  Consider using CodeableConcept.text",
+            "expression": "code.exists().not() implies display.exists().not()",
+            "source": "http://hl7.org/fhir/StructureDefinition/Coding"
           }
         ],
-        "isModifier": false,
         "isSummary": true,
         "mapping": [
+          {
+            "identity": "rim",
+            "map": "n/a"
+          },
+          {
+            "identity": "v2",
+            "map": "CE/CNE/CWE subset one of the sets of component 1-3 or 4-6"
+          },
+          {
+            "identity": "rim",
+            "map": "CV"
+          },
+          {
+            "identity": "orim",
+            "map": "fhir:Coding rdfs:subClassOf dt:CDCoding"
+          },
           {
             "identity": "v2",
             "map": "C*E.1-8, C*E.10-22"
@@ -1765,7 +2648,7 @@
             "extension": [
               {
                 "url": "http://hl7.org/fhir/StructureDefinition/structuredefinition-fhir-type",
-                "valueUrl": "id"
+                "valueUrl": "string"
               }
             ],
             "code": "http://hl7.org/fhirpath/System.String"
@@ -1774,8 +2657,6 @@
         "condition": [
           "ele-1"
         ],
-        "isModifier": false,
-        "isSummary": false,
         "mapping": [
           {
             "identity": "rim",
@@ -1831,12 +2712,14 @@
             "source": "http://hl7.org/fhir/StructureDefinition/Extension"
           }
         ],
-        "isModifier": false,
-        "isSummary": false,
         "mapping": [
           {
             "identity": "rim",
             "map": "n/a"
+          },
+          {
+            "identity": "rim",
+            "map": "N/A"
           }
         ]
       },
@@ -1868,9 +2751,12 @@
             "source": "http://hl7.org/fhir/StructureDefinition/Element"
           }
         ],
-        "isModifier": false,
         "isSummary": true,
         "mapping": [
+          {
+            "identity": "rim",
+            "map": "n/a"
+          },
           {
             "identity": "v2",
             "map": "C*E.3"
@@ -1912,9 +2798,12 @@
             "source": "http://hl7.org/fhir/StructureDefinition/Element"
           }
         ],
-        "isModifier": false,
         "isSummary": true,
         "mapping": [
+          {
+            "identity": "rim",
+            "map": "n/a"
+          },
           {
             "identity": "v2",
             "map": "C*E.7"
@@ -1940,6 +2829,7 @@
         "path": "Location.type.coding.code",
         "short": "Symbol in syntax defined by the system",
         "definition": "A symbol in syntax defined by the system. The symbol may be a predefined code or an expression in a syntax defined by the coding system (e.g. post-coordination).",
+        "comment": "Note that FHIR strings SHALL NOT exceed 1,048,576 (1024*1024) characters in size",
         "requirements": "Need to refer to a particular code in the system.",
         "min": 1,
         "max": "1",
@@ -1965,9 +2855,12 @@
             "source": "http://hl7.org/fhir/StructureDefinition/Element"
           }
         ],
-        "isModifier": false,
         "isSummary": true,
         "mapping": [
+          {
+            "identity": "rim",
+            "map": "n/a"
+          },
           {
             "identity": "v2",
             "map": "C*E.1"
@@ -1997,6 +2890,7 @@
         "path": "Location.type.coding.display",
         "short": "Representation defined by the system",
         "definition": "A representation of the meaning of the code in the system, following the rules of the system.",
+        "comment": "Note that FHIR strings SHALL NOT exceed 1,048,576 (1024*1024) characters in size",
         "requirements": "Need to be able to carry a human-readable meaning of the code for readers that do not know  the system.",
         "min": 0,
         "max": "1",
@@ -2022,9 +2916,12 @@
             "source": "http://hl7.org/fhir/StructureDefinition/Element"
           }
         ],
-        "isModifier": false,
         "isSummary": true,
         "mapping": [
+          {
+            "identity": "rim",
+            "map": "n/a"
+          },
           {
             "identity": "v2",
             "map": "C*E.2 - but note this is not well followed"
@@ -2067,9 +2964,12 @@
             "source": "http://hl7.org/fhir/StructureDefinition/Element"
           }
         ],
-        "isModifier": false,
         "isSummary": true,
         "mapping": [
+          {
+            "identity": "rim",
+            "map": "n/a"
+          },
           {
             "identity": "v2",
             "map": "Sometimes implied by being first"
@@ -2122,9 +3022,12 @@
             "source": "http://hl7.org/fhir/StructureDefinition/Element"
           }
         ],
-        "isModifier": false,
         "isSummary": true,
         "mapping": [
+          {
+            "identity": "rim",
+            "map": "n/a"
+          },
           {
             "identity": "v2",
             "map": "C*E.9. But note many systems use C*E.2 for this"
@@ -2173,6 +3076,10 @@
         "mapping": [
           {
             "identity": "rim",
+            "map": "n/a"
+          },
+          {
+            "identity": "rim",
             "map": ".telecom and .addr and other .role(relevant datatype properties mapped from role into extendedcontactdetail)"
           }
         ]
@@ -2211,6 +3118,22 @@
         "mapping": [
           {
             "identity": "rim",
+            "map": "n/a"
+          },
+          {
+            "identity": "v2",
+            "map": "XAD"
+          },
+          {
+            "identity": "rim",
+            "map": "AD"
+          },
+          {
+            "identity": "servd",
+            "map": "Address"
+          },
+          {
+            "identity": "rim",
             "map": ".addr"
           },
           {
@@ -2224,6 +3147,7 @@
         "path": "Location.form",
         "short": "Physical form of the location",
         "definition": "Physical form of the location, e.g. building, room, vehicle, road, virtual.",
+        "comment": "Not all terminology uses fit this general pattern. In some cases, models should not use CodeableConcept and use Coding directly and provide their own structure for managing text, codings, translations and the relationship between elements and pre- and post-coordination.",
         "requirements": "For purposes of showing relevant locations in queries, we need to categorize locations.",
         "min": 0,
         "max": "1",
@@ -2261,6 +3185,22 @@
           "valueSet": "http://hl7.org/fhir/ValueSet/location-form"
         },
         "mapping": [
+          {
+            "identity": "rim",
+            "map": "n/a"
+          },
+          {
+            "identity": "v2",
+            "map": "CE/CNE/CWE"
+          },
+          {
+            "identity": "rim",
+            "map": "CD"
+          },
+          {
+            "identity": "orim",
+            "map": "fhir:CodeableConcept rdfs:subClassOf dt:CD"
+          },
           {
             "identity": "w5",
             "map": "FiveWs.class"
@@ -2305,6 +3245,10 @@
         "mapping": [
           {
             "identity": "rim",
+            "map": "n/a"
+          },
+          {
+            "identity": "rim",
             "map": ".playingEntity [classCode=PLC determinerCode=INSTANCE].positionText"
           }
         ]
@@ -2338,8 +3282,6 @@
         "condition": [
           "ele-1"
         ],
-        "isModifier": false,
-        "isSummary": false,
         "mapping": [
           {
             "identity": "rim",
@@ -2350,6 +3292,16 @@
       {
         "id": "Location.position.extension",
         "path": "Location.position.extension",
+        "slicing": {
+          "discriminator": [
+            {
+              "type": "value",
+              "path": "url"
+            }
+          ],
+          "description": "Extensions are always sliced by (at least) url",
+          "rules": "open"
+        },
         "short": "Additional content defined by implementations",
         "definition": "May be used to represent additional information that is not part of the basic definition of the element. To make the use of extensions safe and managable, there is a strict set of governance applied to the definition and use of extensions. Though any implementer can define an extension, there is a set of requirements that SHALL be met as part of the definition of the extension.",
         "comment": "There can be no stigma associated with the use of extensions by any application, project, or standard - regardless of the institution or jurisdiction that uses or defines the extensions.  The use of extensions is what allows the FHIR specification to retain a core level of simplicity for everyone.",
@@ -2385,12 +3337,14 @@
             "source": "http://hl7.org/fhir/StructureDefinition/Extension"
           }
         ],
-        "isModifier": false,
-        "isSummary": false,
         "mapping": [
           {
             "identity": "rim",
             "map": "n/a"
+          },
+          {
+            "identity": "rim",
+            "map": "N/A"
           }
         ]
       },
@@ -2440,6 +3394,10 @@
         "mapping": [
           {
             "identity": "rim",
+            "map": "n/a"
+          },
+          {
+            "identity": "rim",
             "map": "N/A"
           }
         ]
@@ -2449,6 +3407,7 @@
         "path": "Location.position.longitude",
         "short": "Longitude with WGS84 datum",
         "definition": "Longitude. The value domain and the interpretation are the same as for the text of the longitude element in KML (see notes on Location main page).",
+        "comment": "Do not use an IEEE type floating point type, instead use something that works like a true decimal, with inbuilt precision (e.g. Java BigInteger)",
         "min": 1,
         "max": "1",
         "base": {
@@ -2476,6 +3435,10 @@
         "mapping": [
           {
             "identity": "rim",
+            "map": "n/a"
+          },
+          {
+            "identity": "rim",
             "map": "(RIM Opted not to map the sub-elements of GPS location, is now an OBS)"
           }
         ]
@@ -2485,6 +3448,7 @@
         "path": "Location.position.latitude",
         "short": "Latitude with WGS84 datum",
         "definition": "Latitude. The value domain and the interpretation are the same as for the text of the latitude element in KML (see notes on Location main page).",
+        "comment": "Do not use an IEEE type floating point type, instead use something that works like a true decimal, with inbuilt precision (e.g. Java BigInteger)",
         "min": 1,
         "max": "1",
         "base": {
@@ -2512,6 +3476,10 @@
         "mapping": [
           {
             "identity": "rim",
+            "map": "n/a"
+          },
+          {
+            "identity": "rim",
             "map": "(RIM Opted not to map the sub-elements of GPS location, is now an OBS)"
           }
         ]
@@ -2521,6 +3489,7 @@
         "path": "Location.position.altitude",
         "short": "Altitude with WGS84 datum",
         "definition": "Altitude. The value domain and the interpretation are the same as for the text of the altitude element in KML (see notes on Location main page).",
+        "comment": "Do not use an IEEE type floating point type, instead use something that works like a true decimal, with inbuilt precision (e.g. Java BigInteger)",
         "min": 0,
         "max": "1",
         "base": {
@@ -2546,6 +3515,10 @@
         "isModifier": false,
         "isSummary": false,
         "mapping": [
+          {
+            "identity": "rim",
+            "map": "n/a"
+          },
           {
             "identity": "rim",
             "map": "(RIM Opted not to map the sub-elements of GPS location, is now an OBS)"
@@ -2581,12 +3554,34 @@
             "human": "All FHIR elements must have a @value or children",
             "expression": "hasValue() or (children().count() > id.count())",
             "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          },
+          {
+            "key": "ref-1",
+            "severity": "error",
+            "human": "SHALL have a contained resource if a local reference is provided",
+            "expression": "reference.exists()  implies (reference.startsWith('#').not() or (reference.substring(1).trace('url') in %rootResource.contained.id.trace('ids')) or (reference='#' and %rootResource!=%resource))",
+            "source": "http://hl7.org/fhir/StructureDefinition/Reference"
+          },
+          {
+            "key": "ref-2",
+            "severity": "error",
+            "human": "At least one of reference, identifier and display SHALL be present (unless an extension is provided).",
+            "expression": "reference.exists() or identifier.exists() or display.exists() or extension.exists()",
+            "source": "http://hl7.org/fhir/StructureDefinition/Reference"
           }
         ],
         "mustSupport": false,
         "isModifier": false,
         "isSummary": true,
         "mapping": [
+          {
+            "identity": "rim",
+            "map": "n/a"
+          },
+          {
+            "identity": "rim",
+            "map": "The target of a resource reference is a RIM entry point (Act, Role, or Entity)"
+          },
           {
             "identity": "rim",
             "map": ".scopingEntity[classCode=ORG determinerKind=INSTANCE]"
@@ -2598,6 +3593,7 @@
         "path": "Location.partOf",
         "short": "Another Location this one is physically a part of",
         "definition": "Another Location of which this Location is physically a part of.",
+        "comment": "References SHALL be a reference to an actual FHIR resource, and SHALL be resolvable (allowing for access control, temporary unavailability, etc.). Resolution can be either by retrieval from the URL, or, where applicable by resource type, by treating an absolute reference as a canonical URL and looking it up in a local registry/repository.",
         "requirements": "For purposes of location, display and identification, knowing which locations are located within other locations is important.",
         "min": 0,
         "max": "1",
@@ -2608,12 +3604,6 @@
         },
         "type": [
           {
-            "extension": [
-              {
-                "url": "http://hl7.org/fhir/StructureDefinition/structuredefinition-hierarchy",
-                "valueBoolean": true
-              }
-            ],
             "code": "Reference",
             "targetProfile": [
               "https://digit.org/fhir/StructureDefinition/DIGITHCMBoundary"
@@ -2627,12 +3617,34 @@
             "human": "All FHIR elements must have a @value or children",
             "expression": "hasValue() or (children().count() > id.count())",
             "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          },
+          {
+            "key": "ref-1",
+            "severity": "error",
+            "human": "SHALL have a contained resource if a local reference is provided",
+            "expression": "reference.exists()  implies (reference.startsWith('#').not() or (reference.substring(1).trace('url') in %rootResource.contained.id.trace('ids')) or (reference='#' and %rootResource!=%resource))",
+            "source": "http://hl7.org/fhir/StructureDefinition/Reference"
+          },
+          {
+            "key": "ref-2",
+            "severity": "error",
+            "human": "At least one of reference, identifier and display SHALL be present (unless an extension is provided).",
+            "expression": "reference.exists() or identifier.exists() or display.exists() or extension.exists()",
+            "source": "http://hl7.org/fhir/StructureDefinition/Reference"
           }
         ],
         "mustSupport": false,
         "isModifier": false,
         "isSummary": false,
         "mapping": [
+          {
+            "identity": "rim",
+            "map": "n/a"
+          },
+          {
+            "identity": "rim",
+            "map": "The target of a resource reference is a RIM entry point (Act, Role, or Entity)"
+          },
           {
             "identity": "rim",
             "map": ".inboundLink[typeCode=PART].source[classCode=SDLOC]"
@@ -2683,6 +3695,22 @@
         "mapping": [
           {
             "identity": "rim",
+            "map": "n/a"
+          },
+          {
+            "identity": "v2",
+            "map": "CE/CNE/CWE"
+          },
+          {
+            "identity": "rim",
+            "map": "CD"
+          },
+          {
+            "identity": "orim",
+            "map": "fhir:CodeableConcept rdfs:subClassOf dt:CD"
+          },
+          {
+            "identity": "rim",
             "map": ".actrelationship[typeCode=PERT].observation"
           }
         ]
@@ -2718,6 +3746,10 @@
         "isModifier": false,
         "isSummary": false,
         "mapping": [
+          {
+            "identity": "rim",
+            "map": "n/a"
+          },
           {
             "identity": "rim",
             "map": ".effectiveTime"
@@ -2757,6 +3789,10 @@
         "mapping": [
           {
             "identity": "rim",
+            "map": "n/a"
+          },
+          {
+            "identity": "rim",
             "map": "N/A"
           }
         ]
@@ -2766,6 +3802,7 @@
         "path": "Location.endpoint",
         "short": "Technical endpoints providing access to services operated for the location",
         "definition": "Technical endpoints providing access to services operated for the location.",
+        "comment": "References SHALL be a reference to an actual FHIR resource, and SHALL be resolvable (allowing for access control, temporary unavailability, etc.). Resolution can be either by retrieval from the URL, or, where applicable by resource type, by treating an absolute reference as a canonical URL and looking it up in a local registry/repository.",
         "requirements": "Organizations may have different systems at different locations that provide various services and need to be able to define the technical connection details for how to connect to them, and for what purpose.",
         "min": 0,
         "max": "*",
@@ -2789,6 +3826,20 @@
             "human": "All FHIR elements must have a @value or children",
             "expression": "hasValue() or (children().count() > id.count())",
             "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          },
+          {
+            "key": "ref-1",
+            "severity": "error",
+            "human": "SHALL have a contained resource if a local reference is provided",
+            "expression": "reference.exists()  implies (reference.startsWith('#').not() or (reference.substring(1).trace('url') in %rootResource.contained.id.trace('ids')) or (reference='#' and %rootResource!=%resource))",
+            "source": "http://hl7.org/fhir/StructureDefinition/Reference"
+          },
+          {
+            "key": "ref-2",
+            "severity": "error",
+            "human": "At least one of reference, identifier and display SHALL be present (unless an extension is provided).",
+            "expression": "reference.exists() or identifier.exists() or display.exists() or extension.exists()",
+            "source": "http://hl7.org/fhir/StructureDefinition/Reference"
           }
         ],
         "mustSupport": false,
@@ -2798,6 +3849,10 @@
           {
             "identity": "rim",
             "map": "n/a"
+          },
+          {
+            "identity": "rim",
+            "map": "The target of a resource reference is a RIM entry point (Act, Role, or Entity)"
           }
         ]
       }
