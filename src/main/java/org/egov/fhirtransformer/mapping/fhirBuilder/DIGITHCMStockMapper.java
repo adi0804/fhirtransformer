@@ -219,8 +219,8 @@ public class DIGITHCMStockMapper {
         StockReconciliation stockRecon = new StockReconciliation();
         //Defaulting the values for mandatory fields
         stockRecon.setTenantId(Constants.TENANT_ID);
-        stockRecon.setReferenceId("add this");
-        stockRecon.setReferenceIdType("add this");
+        stockRecon.setReferenceId(UUID.randomUUID().toString());
+        stockRecon.setReferenceIdType(ReferenceIdType.OTHER.toString());
 
         String reportedDateTime = inventoryReport.getReportedDateTimeElement().getValueAsString();
         OffsetDateTime odt = OffsetDateTime.parse(reportedDateTime);

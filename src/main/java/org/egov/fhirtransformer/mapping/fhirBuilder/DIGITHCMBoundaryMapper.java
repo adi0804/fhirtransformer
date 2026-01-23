@@ -47,7 +47,7 @@ public class DIGITHCMBoundaryMapper {
         BoundaryRelation boundaryRelation = new BoundaryRelation();
         //Set mandatory fields
         boundaryRelation.setTenantId(Constants.TENANT_ID);
-        boundaryRelation.setHierarchyType("PERFORMAN");
+        boundaryRelation.setHierarchyType(Constants.HIERARCHY_TYPE);
 
         //Set Boundary RelationShip ID
         boundaryRelation.setId(location.getIdElement().getIdPart());
