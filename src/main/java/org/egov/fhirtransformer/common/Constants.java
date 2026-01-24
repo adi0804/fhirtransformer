@@ -46,6 +46,7 @@ public class Constants {
     public static final String FACILITY_ID_SYSTEM = "https://digit.org/fhir/facilityid";
     public static final String PRODUCT_VARIANT_IDENTIFIER_SYSTEM = "https://digit.org/fhir/productVariant-identifier";
 
+
     public static final String UOM_SYSTEM = "https://digit.org/CodeSystem/units";
     public static final String LOCATION = "Location";
     public static final String INVENTORY_ITEM = "InventoryItem";

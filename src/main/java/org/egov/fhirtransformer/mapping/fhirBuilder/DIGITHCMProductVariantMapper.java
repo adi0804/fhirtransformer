@@ -186,9 +186,22 @@ public class DIGITHCMProductVariantMapper {
         ProductVariant productVariant = new ProductVariant();
         //Defaulting the values for mandatory fields
         productVariant.setTenantId(Constants.TENANT_ID);
-        productVariant.setProductId(inventoryItem.getIdElement().getId());
-        productVariant.setSku(inventoryItem.getIdentifierFirstRep().getValue());
-        productVariant.setVariation(inventoryItem.getNameFirstRep().getName());
+        for (Identifier identifier : inventoryItem.getIdentifier()) {
+            String system = identifier.getSystem();
+            String value = identifier.getValue();
+
+            System.out.println("System: " + system + ", Value: " + value);
+            if (system.equals(Constants.IDENTIFIER_SYSTEM_PRDCT)) {
+                productVariant.setProductId(inventoryItem.getIdElement().getId());
+
+            } else if (system.equals(Constants.IDENTIFIER_SYSTEM_SKUPV)) {
+                productVariant.setSku(inventoryItem.getIdentifierFirstRep().getValue());
+            }
+            else if (system.equals(Constants.IDENTIFIER_SYSTEM_PV)) {
+                productVariant.setVariation(inventoryItem.getNameFirstRep().getName());
+            }
+        }
+
         return productVariant;
 
     }
