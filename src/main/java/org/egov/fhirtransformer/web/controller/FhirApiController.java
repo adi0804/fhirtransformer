@@ -45,7 +45,7 @@ public class FhirApiController {
 
     @GetMapping("/health")
     public ResponseEntity<String> healthCheck() {
-        return ResponseEntity.ok("Piku is Awesome and Adi is Stupid");
+        return ResponseEntity.ok("I'm fine. Thank you for asking!");
     }
 
     @PostMapping("/validate")

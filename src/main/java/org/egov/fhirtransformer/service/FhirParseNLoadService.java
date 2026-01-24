@@ -22,9 +22,13 @@ import org.springframework.stereotype.Service;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Service
 public class FhirParseNLoadService {
+
+    private static final Logger logger = LoggerFactory.getLogger(FhirParseNLoadService.class);
 
     private final FhirContext ctx = FhirContext.forR5();
 
@@ -54,6 +58,7 @@ public class FhirParseNLoadService {
         try {
             bundle = parser.parseResource(Bundle.class, fhirJson);
         } catch (Exception e) {
+            logger.error("Failed to parse FHIR resource: {}", e.getMessage(), e);
             return entityResults;
         }
         HashMap<String, Stock> supplyDeliveryMap = new HashMap<>();
@@ -64,61 +69,66 @@ public class FhirParseNLoadService {
 
         // Process each entry in the bundle
         for (Bundle.BundleEntryComponent entry : bundle.getEntry()) {
-            if (entry.getResource() instanceof SupplyDelivery) {
-                SupplyDelivery supplyDelivery = (SupplyDelivery) entry.getResource();
-                String logicalId = supplyDelivery.getIdElement().getIdPart();
-                Stock stock = DIGITHCMStockMapper.buildStockFromSupplyDelivery(supplyDelivery);
-                supplyDeliveryMap.put(logicalId, stock);
-            }
-            if (entry.getResource() instanceof org.hl7.fhir.r5.model.Location) {
-                org.hl7.fhir.r5.model.Location location = (org.hl7.fhir.r5.model.Location) entry.getResource();
-                List<String> profiles = location.getMeta().getProfile().stream()
-                        .map(p -> p.getValue())
-                        .collect(Collectors.toList());
-                String logicalId = location.getIdElement().getIdPart();
-                if (profiles.contains(Constants.PROFILE_DIGIT_HCM_FACILITY)){
-                    Facility facility = DIGITHCMFacilityMapper.convertFhirLocationToFacility(location);
-                    facilityMap.put(logicalId, facility);
+            try {
+                if (entry.getResource() instanceof SupplyDelivery) {
+                    SupplyDelivery supplyDelivery = (SupplyDelivery) entry.getResource();
+                    String logicalId = supplyDelivery.getIdElement().getIdPart();
+                    Stock stock = DIGITHCMStockMapper.buildStockFromSupplyDelivery(supplyDelivery);
+                    supplyDeliveryMap.put(logicalId, stock);
                 }
-                else if (profiles.contains(Constants.PROFILE_DIGIT_HCM_BOUNDARY)) {
-                    logicalId = location.getName();
-                    BoundaryRelation boundaryRelation = DIGITHCMBoundaryMapper.convertFhirLocationToBoundaryRelation(location);
-                    boundaryRelationMap.put(logicalId, boundaryRelation);
+                if (entry.getResource() instanceof org.hl7.fhir.r5.model.Location) {
+                    org.hl7.fhir.r5.model.Location location = (org.hl7.fhir.r5.model.Location) entry.getResource();
+                    List<String> profiles = location.getMeta().getProfile().stream()
+                            .map(p -> p.getValue())
+                            .collect(Collectors.toList());
+                    String logicalId = location.getIdElement().getIdPart();
+                    if (profiles.contains(Constants.PROFILE_DIGIT_HCM_FACILITY)){
+                        Facility facility = DIGITHCMFacilityMapper.convertFhirLocationToFacility(location);
+                        facilityMap.put(logicalId, facility);
+                    }
+                    else if (profiles.contains(Constants.PROFILE_DIGIT_HCM_BOUNDARY)) {
+                        logicalId = location.getName();
+                        BoundaryRelation boundaryRelation = DIGITHCMBoundaryMapper.convertFhirLocationToBoundaryRelation(location);
+                        boundaryRelationMap.put(logicalId, boundaryRelation);
+                    }
                 }
-            }
-            if (entry.getResource() instanceof InventoryReport inventoryReport) {
-                String logicalId = inventoryReport.getIdElement().getIdPart();
-                StockReconciliation stockRecon= DIGITHCMStockMapper.buildStockReconFromInventoryReport(inventoryReport);
-                stockReconciliationMap.put(logicalId, stockRecon);
-            }
-            if (entry.getResource() instanceof InventoryItem inventoryItem) {
-                String logicalId = inventoryItem.getIdElement().getIdPart();
-                ProductVariant productVariant = DIGITHCMProductVariantMapper.buildProductVariantFromInventoryItem(inventoryItem);
-                productVariantMap.put(logicalId, productVariant);
+                if (entry.getResource() instanceof InventoryReport inventoryReport) {
+                    String logicalId = inventoryReport.getIdElement().getIdPart();
+                    StockReconciliation stockRecon= DIGITHCMStockMapper.buildStockReconFromInventoryReport(inventoryReport);
+                    stockReconciliationMap.put(logicalId, stockRecon);
+                }
+                if (entry.getResource() instanceof InventoryItem inventoryItem) {
+                    String logicalId = inventoryItem.getIdElement().getIdPart();
+                    ProductVariant productVariant = DIGITHCMProductVariantMapper.buildProductVariantFromInventoryItem(inventoryItem);
+                    productVariantMap.put(logicalId, productVariant);
+                }
+            } catch (Exception e) {
+                logger.error("Error processing entry: {}", e.getMessage(), e);
+                logger.info("Skipping entry with resource ID: {}", entry.getResource().getIdElement().getIdPart());
             }
         }
         //call Create supply delivery to stock service
-        System.out.println("supply delivery map: " + supplyDeliveryMap);
+        logger.info("supply delivery map: {}", supplyDeliveryMap);
         HashMap<String, Integer> stockResults = sdToStockService.transformSupplyDeliveryToStock(supplyDeliveryMap);
         entityResults.put("Stock", stockResults);
 
         //call Create Location to facility service
-        System.out.println("facility map: " + facilityMap);
+        logger.info("facility map: {}", facilityMap);
         HashMap<String, Integer> facilityResults = locToFacilityService.transformLocationToFacility(facilityMap);
         entityResults.put("facility", facilityResults);
 
         //call Create boundary relation service
-        System.out.println("boundary relation map: " + boundaryRelationMap);
+        logger.info("boundary relation map: {}", boundaryRelationMap);
         HashMap<String, Integer> boundaryResults = locToBoundaryService.transformLocationToBoundary(boundaryRelationMap);
         entityResults.put("boundary", boundaryResults);
 
         //call Create Inventory Report to stockrecon service
-        System.out.println("Stock Reconciliation map: " + stockReconciliationMap);
+        logger.info("Stock Reconciliation map: {}", stockReconciliationMap);
         HashMap<String, Integer> stockReconResults = irToStkRecService.transformInventoryReportToStockReconciliation(stockReconciliationMap);
         entityResults.put("Stock", stockResults);
 
         //call Create Inventory Item to Product Variant service
-        System.out.println("Product Variant map: " + productVariantMap);
+        logger.info("Product Variant map: {}", productVariantMap);
         HashMap<String, Integer> productVariantResults = invToProductService.transformInventoryItemToProductVariant(productVariantMap);
         entityResults.put("Product Variant", productVariantResults);
 
