@@ -148,7 +148,7 @@
       {
         "id": "InventoryItem.name:commonName.nameType.code",
         "path": "InventoryItem.name.nameType.code",
-        "fixedCode": "common-name"
+        "fixedCode": "alias"
       },
       {
         "id": "InventoryItem.responsibleOrganization.role.coding.system",
