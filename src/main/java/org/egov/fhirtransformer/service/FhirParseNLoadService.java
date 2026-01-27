@@ -100,9 +100,6 @@ public class FhirParseNLoadService {
                     String logicalId = inventoryReport.getIdElement().getIdPart();
                     StockReconciliation stockRecon= DIGITHCMStockMapper.buildStockReconFromInventoryReport(inventoryReport);
                     stockReconciliationMap.put(logicalId, stockRecon);
-                    if (true) { // testing only
-                        throw new RuntimeException("Failed at Resource Parsing");
-                    }
                 }
                 if (entry.getResource() instanceof InventoryItem inventoryItem) {
                     String logicalId = inventoryItem.getIdElement().getIdPart();
