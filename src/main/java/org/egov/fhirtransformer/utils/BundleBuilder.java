@@ -1,10 +1,8 @@
 package org.egov.fhirtransformer.utils;
 
-
 import org.egov.common.models.core.URLParams;
 import org.egov.fhirtransformer.common.Constants;
 import org.hl7.fhir.r5.model.*;
-
 import java.util.*;
 
 public class BundleBuilder {
@@ -12,7 +10,7 @@ public class BundleBuilder {
     public static <T extends Resource> Bundle buildBundle(
             List<T> resources, URLParams urlParams, int totalCount, String apiPath) {
 
-        Bundle bundle = buildBaseBundle(totalCount);
+        Bundle bundle = createSearchSetBundle(totalCount);
         for (T resource : resources) {
             bundle.addEntry()
                     .setResource(resource)
@@ -22,7 +20,7 @@ public class BundleBuilder {
         return bundle;
     }
 
-    public static Bundle buildBaseBundle(int totalCount){
+    public static Bundle createSearchSetBundle(int totalCount){
         Bundle bundle = new Bundle();
         bundle.setType(Bundle.BundleType.SEARCHSET);
         bundle.setTimestamp(new Date());

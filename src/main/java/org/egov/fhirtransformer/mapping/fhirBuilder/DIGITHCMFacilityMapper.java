@@ -59,16 +59,16 @@ public class DIGITHCMFacilityMapper {
             }
             address.setCity(addr.getCity());
             address.setPostalCode(addr.getPincode());
+
+            location.setAddress(address);
+
+            // Setting position details (latitude and longitude)
+            Location.LocationPositionComponent position = new Location.LocationPositionComponent()
+                    .setLatitude(addr.getLatitude())
+                    .setLongitude(addr.getLongitude());
+
+            location.setPosition(position);
         }
-        location.setAddress(address);
-
-        // Setting position details (latitude and longitude)
-        Location.LocationPositionComponent position = new Location.LocationPositionComponent()
-                .setLatitude(addr.getLatitude())
-                .setLongitude(addr.getLongitude());
-
-        location.setPosition(position);
-
         return location;
     }
 

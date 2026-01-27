@@ -12,6 +12,7 @@ import org.egov.fhirtransformer.mapping.fhirBuilder.DIGITHCMFacilityMapper;
 import org.egov.fhirtransformer.mapping.fhirBuilder.DIGITHCMProductVariantMapper;
 import org.egov.fhirtransformer.mapping.fhirBuilder.DIGITHCMStockMapper;
 import org.egov.fhirtransformer.mapping.requestBuilder.*;
+import org.egov.fhirtransformer.repository.KafkaProducerService;
 import org.hl7.fhir.r5.model.Bundle;
 import org.hl7.fhir.r5.model.InventoryItem;
 import org.hl7.fhir.r5.model.InventoryReport;
@@ -49,6 +50,9 @@ public class FhirParseNLoadService {
 
     @Autowired
     private InventoryItemToProductVariant invToProductService;
+
+    @Autowired
+    private KafkaProducerService kafkaService;
 
     public HashMap<String, HashMap<String, Integer>> parseAndLoadFHIRResource(String fhirJson) throws Exception {
         HashMap<String, HashMap<String, Integer>> entityResults = new HashMap<>();
@@ -96,15 +100,20 @@ public class FhirParseNLoadService {
                     String logicalId = inventoryReport.getIdElement().getIdPart();
                     StockReconciliation stockRecon= DIGITHCMStockMapper.buildStockReconFromInventoryReport(inventoryReport);
                     stockReconciliationMap.put(logicalId, stockRecon);
+                    if (true) { // testing only
+                        throw new RuntimeException("Failed at Resource Parsing");
+                    }
                 }
                 if (entry.getResource() instanceof InventoryItem inventoryItem) {
                     String logicalId = inventoryItem.getIdElement().getIdPart();
                     ProductVariant productVariant = DIGITHCMProductVariantMapper.buildProductVariantFromInventoryItem(inventoryItem);
                     productVariantMap.put(logicalId, productVariant);
+
                 }
             } catch (Exception e) {
                 logger.error("Error processing entry: {}", e.getMessage(), e);
                 logger.info("Skipping entry with resource ID: {}", entry.getResource().getIdElement().getIdPart());
+                kafkaService.publishFhirResourceFailures(entry, e.getMessage());
             }
         }
         //call Create supply delivery to stock service
