@@ -136,6 +136,15 @@
 			<groupId>org.springframework.kafka</groupId>
 			<artifactId>spring-kafka</artifactId>
 		</dependency>
+
+		<dependency>
+			<groupId>digit.web</groupId>
+			<artifactId>boundary-service</artifactId>
+			<version>1.0.1</version>
+			<scope>system</scope>
+			<systemPath>${basedir}/lib/boundary-service-1.0.1.jar</systemPath>
+		</dependency>
+
 <!--		<dependency>-->
 <!--			<groupId>org.egov</groupId>-->
 <!--			<artifactId>boundary-service</artifactId>-->
