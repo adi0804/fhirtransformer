@@ -1,38 +1,90 @@
 # FHIR Transformer
 
-FHIR Transformer is a Spring Boot based Java project scaffold for receiving, validating, transforming, and forwarding FHIR (Fast Healthcare Interoperability Resources) data. 
+A Spring Boot service that validates, converts and forwards FHIR R5 resources into eGov/DIGIT domain models and APIs (facilities, product variants, stock, stock reconciliation, boundaries). 
+It also builds FHIR Bundles from backend search responses.
+
 
 ## Quick summary
-- Language: Java (Spring Boot)
+- Language / build: Java 17, Maven (mvn wrapper included).
+- Key technologies: Spring Boot, HAPI-FHIR (R5), Kafka
 - Package base: org.egov.fhirtransformer
 - Purpose: Provide a lightweight application to receive, validate, transform, and forward FHIR resources.
 
+## Features
+- Validate incoming FHIR JSON against loaded profiles (custom profiles in /profiles).</br>
+- Convert backend responses (Facility, ProductVariant, Stock, StockReconciliation, Boundary) to FHIR resources and produce Bundles.</br>
+- Parse incoming FHIR Bundles and convert Location / SupplyDelivery / InventoryItem / InventoryReport entries into domain models and call backend create/update endpoints.</br>
+- Publish invalid FHIR Bundles to a DLQ Kafka topic with validation errors.</br>
+- Publish failed Resources to Failed Kafka Topis</br>
+
+## Build:
+  ./mvnw -DskipTests package</br>
+  or </br>
+  mvn -DskipTests package</br>
+
+
+Run:</br>
+  ./mvnw spring-boot:run</br>
+  or </br>
+  java -jar target/fhirtransformer-0.0.1-SNAPSHOT.jar</br>
+  Configuration (application.properties / environment)</br>
+
 
 ## Recommended architecture and components
-- Controllers (org.egov.fhirtransformer.web)
+- Controllers: src/main/java/org/egov/fhirtransformer/web/controller/
   - Accept HTTP requests containing FHIR JSON or Request payloads.
-  - Expose endpoints such as POST /transform and GET /health.
+  - Exposes endpoints under /fhir-api (health, validate, fetchAll*, consumeFHIR).
+- Validator:  src/main/java/org/egov/fhirtransformer/validator
+  - Loads JSON profiles from resources/profiles, registers with HAPI FHIR ValidationSupportChain
+  - validates incoming payloads using a FHIR library .
 - Services (org.egov.fhirtransformer.service)
-  - TransformerService: orchestrates parsing, validation, transformation, and persistence or forwarding.
-- Mapping (org.egov.fhirtransformer.mapping) 
-  - FhirMapper: 
-    - Provides builder classes and helper factories that construct HAPI-FHIR resource objects from raw payloads, centralizing object creation and defaulting logic.
-  - RequestBuilder
-    - Builds outgoing request payloads (HTTP bodies, message envelopes, or integration DTOs) from internal models or transformed FHIR resources, handling serialization format and required headers/metadata.
-- Validators (org.egov.fhirtransformer.validator)
-  - FhirValidator: validates incoming payloads using a FHIR library (e.g., HAPI-FHIR) or JSON Schema/StructureDefinition.
-  - BusinessRuleValidator: applies business rules and returns structured operation outcomes.
-- Cross-cutting
-  - config: application configuration, ObjectMapper beans, property bindings.
-  - util: utilities, logging helpers, error mappers.
-  - common : Shared utilities and constants
+  - FhirParseNLoadService: parses incoming Bundle and distributes entries to mapping/request-builder services (SupplyDeliveryToStockService, LocationToFacilityService, LocationToBoundaryService, InventoryItemToProductVariant, InventoryReportToStockReconciliationService). DIGITHCMFacilityMapper, DIGITHCMBoundaryMapper, DIGITHCMStockMapper: convert between FHIR resources (Location, SupplyDelivery, InventoryReport, InventoryItem) and domain objects (Facility, BoundaryRelation, Stock, StockReconciliation, ProductVariant).
+  - ApiIntegrationService: wraps RestTemplate calls to backend services and forms URIs.
+  - FhirTransformerService: Transforms responses (Facility, ProductVariant, Stock, StockReconciliation, Boundary) to FHIR resources and produce Bundles.
+- Mappers:
+  - DIGITHCMFacilityMapper, DIGITHCMBoundaryMapper, DIGITHCMStockMapper: convert between FHIR resources (Location, SupplyDelivery, InventoryReport, InventoryItem) and domain objects (Facility, BoundaryRelation, Stock, StockReconciliation, ProductVariant).
+- Utilities:
+  - BundleBuilder: builds FHIR Bundles (SEARCHSET) from resource lists.
+  - MapUtils: small helpers for splitting IDs and safe getters.
+  - Kafka: KafkaProducerService publishes DLQ messages and failed messages (validation errors) to configured topic.
+- Constants:
+   - central place for FHIR profile URIs, identifier systems, UOM, and other constants.
  
 
-## Suggested dependencies
-- Spring Boot Starter Web
-- Spring Boot Starter Validation
-- HAPI-FHIR (for parsing, validation, and operationOutcome construction)
-- Jackson (JSON handling)
-- Lombok (optional) for reducing boilerplate
+## Public REST endpoints (FhirApiController)
+- GET /fhir-api/health
+  - Returns a simple health message.
+- POST /fhir-api/validate
+  - Body: raw FHIR JSON (resource or bundle)
+  - Response: “Valid FHIR resource” or an “Invalid FHIR resource. errors: […]” message (validation result messages are returned as a single string).
+- POST /fhir-api/fetchAllFacilities
+  - ModelAttribute: URLParams (limit, offset, tenantId)
+  - Body: FacilitySearchRequest (org.egov.common.models.facility)
+  - Response: FHIR Bundle (stringified) of Location resources representing facilities.
+- POST /fhir-api/fetchAllProductVariants
+  - ModelAttribute: URLParams
+  - Body: ProductVariantSearchRequest
+  - Response: FHIR Bundle of InventoryItem resources.
+- POST /fhir-api/fetchAllStocks
+  - ModelAttribute: URLParams
+  - Body: StockSearchRequest
+  - Response: FHIR Bundle of SupplyDelivery resources.
+- POST /fhir-api/fetchAllStockReconciliation
+  - ModelAttribute: URLParams
+  - Body: StockReconciliationSearchRequest
+  - Response: FHIR Bundle of InventoryReport resources.
+- POST /fhir-api/fetchAllBoundaries
+  - ModelAttribute: BoundaryRelationshipSearchCriteria
+  - Body: RequestInfo
+  - Response: FHIR Bundle of Location resources representing boundaries.
+- POST /fhir-api/consumeFHIR
+  - Body: raw FHIR Bundle JSON
+  - Behavior: FhirParseNLoadService parses bundle, converts relevant entries and calls backend APIs to create/update domain resources; returns a map of processed metrics (counts of total, new, existing per entity)
 
+
+## Deployment notes
+
+- Ensure backend endpoints are reachable and credentials/URLs set via properties.
+- Ensure Kafka configurations are correct for your environment.
+- Profiles for FHIR validation must be present at runtime under resources/profiles (CustomFHIRValidator expects to load JSON profile files).
 

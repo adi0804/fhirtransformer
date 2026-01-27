@@ -25,6 +25,7 @@ public class Constants {
     public static final String PROFILE_DIGIT_HCM_PV = "https://digit.org/fhir/StructureDefinition/DIGITHCMInventoryItem";
     public static final String IDENTIFIER_SYSTEM_PV = "http://digit.org/fhir/productVariant-identifier";
     public static final String IDENTIFIER_SYSTEM_SKUPV = "http://digit.org/fhir/productVariantSku-identifier";
+    public static final String IDENTIFIER_SYSTEM_PRDCT = "http://digit.org/fhir/productID";
     public static final String CATEGORY_SYSTEM_PV = "http://digit.org/fhir/CodeSystem/ProductVariant-Producttype";
     public static final String NAMETYPE_SYSTEM_PV = "http://hl7.org/fhir/inventoryitem-nametype";
     public static final String RESPORG_SYSTEM_PV = "http://digit.org/fhir/CodeSystem/responsibleOrganization-role";
@@ -45,7 +46,8 @@ public class Constants {
     public static final String FACILITY_ID_SYSTEM = "https://digit.org/fhir/facilityid";
     public static final String PRODUCT_VARIANT_IDENTIFIER_SYSTEM = "https://digit.org/fhir/productVariant-identifier";
 
-    public static final String UOM_SYSTEM = "http://unitsofmeasure.org";
+
+    public static final String UOM_SYSTEM = "https://digit.org/CodeSystem/units";
     public static final String LOCATION = "Location";
     public static final String INVENTORY_ITEM = "InventoryItem";
     public static final String SELF = "SELF";
@@ -68,4 +70,6 @@ public class Constants {
     public static final String NEW_IDS = "newIDs";
     public static final String EXISTING_IDS = "existingIDs";
     public static final String TOTAL_PROCESSED = "totalProcessed";
+
+    public static final String HIERARCHY_TYPE = "PERFORMAN";
 }

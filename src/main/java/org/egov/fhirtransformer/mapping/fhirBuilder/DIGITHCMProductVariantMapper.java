@@ -104,12 +104,16 @@ public class DIGITHCMProductVariantMapper {
         inventoryItem.setId(productVariant.getId());
         inventoryItem.setStatus(InventoryItem.InventoryItemStatusCodes.ACTIVE);
 
+
         // Setting meta information for the Location resource DIGIT HCM Facility profile
         inventoryItem.setMeta(new Meta()
                 .setLastUpdated(lastModified)
                 .addProfile(Constants.PROFILE_DIGIT_HCM_PV));
 
         // Adding identifier for facility ID
+        Identifier Prdctidentifier = new Identifier()
+                .setSystem(Constants.IDENTIFIER_SYSTEM_PRDCT)
+                .setValue(productVariant.getProductId());
         Identifier identifier = new Identifier()
                 .setSystem(Constants.IDENTIFIER_SYSTEM_PV)
                 .setValue(productVariant.getId());
@@ -119,6 +123,7 @@ public class DIGITHCMProductVariantMapper {
 
         inventoryItem.addIdentifier(identifier);
         inventoryItem.addIdentifier(SKUidentifier);
+        inventoryItem.addIdentifier(Prdctidentifier);
 
         // Adding Category
         inventoryItem.addCategory(new CodeableConcept().addCoding(
@@ -181,9 +186,22 @@ public class DIGITHCMProductVariantMapper {
         ProductVariant productVariant = new ProductVariant();
         //Defaulting the values for mandatory fields
         productVariant.setTenantId(Constants.TENANT_ID);
-        productVariant.setProductId(inventoryItem.getIdElement().getId());
-        productVariant.setSku(inventoryItem.getIdentifierFirstRep().getValue());
-        productVariant.setVariation(inventoryItem.getNameFirstRep().getName());
+        for (Identifier identifier : inventoryItem.getIdentifier()) {
+            String system = identifier.getSystem();
+            String value = identifier.getValue();
+
+            System.out.println("System: " + system + ", Value: " + value);
+            if (system.equals(Constants.IDENTIFIER_SYSTEM_PRDCT)) {
+                productVariant.setProductId(inventoryItem.getIdElement().getId());
+
+            } else if (system.equals(Constants.IDENTIFIER_SYSTEM_SKUPV)) {
+                productVariant.setSku(inventoryItem.getIdentifierFirstRep().getValue());
+            }
+            else if (system.equals(Constants.IDENTIFIER_SYSTEM_PV)) {
+                productVariant.setVariation(inventoryItem.getNameFirstRep().getName());
+            }
+        }
+
         return productVariant;
 
     }

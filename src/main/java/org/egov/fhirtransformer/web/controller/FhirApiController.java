@@ -2,6 +2,8 @@ package org.egov.fhirtransformer.web.controller;
 
 import ca.uhn.fhir.validation.ValidationResult;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import digit.web.models.BoundarySearchResponse;
 import org.egov.common.contract.request.RequestInfo;
 import org.egov.common.models.core.URLParams;
@@ -45,7 +47,7 @@ public class FhirApiController {
 
     @GetMapping("/health")
     public ResponseEntity<String> healthCheck() {
-        return ResponseEntity.ok("Piku is Awesome and Adi is Stupid");
+        return ResponseEntity.ok("I'm fine. Thank you for asking!");
     }
 
     @PostMapping("/validate")
@@ -129,36 +131,34 @@ public class FhirApiController {
     @PostMapping("/consumeFHIR")
     public ResponseEntity<String> consumeFHIR(@RequestBody String fhirJson) throws Exception {
 
-        HashMap<String, HashMap<String, Integer>> response = fpService.parseAndLoadFHIRResource(fhirJson);
-        return ResponseEntity.ok(response.toString());
+        HashMap<String, HashMap<String, Integer>> response = new HashMap<>();
+        try {
+//           Parse incoming FHIR JSON
+            JsonNode root = new ObjectMapper().readTree(fhirJson);
+            String bundleId = root.path("id").asText();
 
-//        try {
-            // Parse incoming FHIR JSON
-//            JsonNode root = new ObjectMapper().readTree(fhirJson);
-//            String bundleId = root.path("id").asText();
-//
-//            // Validate the FHIR resource
-//            ValidationResult result = ftService.validateFHIRResource(fhirJson);
-//
-//            // If validation fails → publish to DLQ
-//            if (!result.isSuccessful()) {
-//                kafkaService.publishToDLQ(result, bundleId, root);
-//                return ResponseEntity
-//                        .badRequest()
-//                        .body("Invalid FHIR resource");
-//            }
-//
-//            // If valid → parse and load FHIR resource
-//            HashMap<String, HashMap<String, Integer>> response = fpService.parseAndLoadFHIRResource(fhirJson);
-//            return ResponseEntity.ok(response.toString());
-//        } catch (JsonProcessingException e) {
-//            logger.error("Failed to parse FHIR JSON :", e);
-//            return ResponseEntity.badRequest().body("Invalid FHIR resource");
-//        } catch (Exception e) {
-//            logger.error("Unexpected error while processing FHIR resource", e);
-//            return ResponseEntity
-//                   .badRequest()
-//                   .body("Processing Failed");
-//        }
+            // Validate the FHIR resource
+            ValidationResult result = ftService.validateFHIRResource(fhirJson);
+
+            // If validation fails → publish to DLQ
+            if (!result.isSuccessful()) {
+                kafkaService.publishToDLQ(result, bundleId, root);
+                return ResponseEntity
+                        .badRequest()
+                        .body("Invalid FHIR resource");
+            }
+
+            // If valid → parse and load FHIR resource
+            response = fpService.parseAndLoadFHIRResource(fhirJson);
+            return ResponseEntity.ok(response.toString());
+        } catch (JsonProcessingException e) {
+            logger.error("Failed to parse FHIR JSON :", e);
+            return ResponseEntity.badRequest().body("Invalid FHIR resource");
+        } catch (Exception e) {
+            logger.error("Unexpected error while processing FHIR resource", e);
+            return ResponseEntity
+                   .badRequest()
+                   .body("Processing Failed");
+        }
    }
 }
