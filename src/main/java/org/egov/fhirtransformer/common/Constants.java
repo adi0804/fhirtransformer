@@ -11,15 +11,12 @@ public class Constants {
     public static final String LOCATION_TYPE_JURISDICTION = "jurisdiction";
     public static final String FACILITY_CACHE_KEY_PREFIX = "facility_";
     public static final long CACHE_TTL_MINUTES = 1;
-    public static final String PARAM_BOUNDARY_LOCATION="DIGITHCMBoundary";
-    public static final String PARAM_FACILITYBOUNDARY_LOCATION="DIGITHCMFacilityLocation";
 
     //  Facility Related Constants
     public static final String PROFILE_DIGIT_HCM_FACILITY = "https://digit.org/fhir/StructureDefinition/DIGITHCMFacilityLocation";
     public static final String IDENTIFIER_SYSTEM_FACILITY = "https://digit.org/fhir/facilityid";
     public static final String FACILITY_USAGE_SYSTEM = "http://digit.org/fhir/CodeSystem/facilityUsage";
     public static final String FACILITY_LOCATION_TYPE = "facility";
-
 
     // Product Variant Related Constants
     public static final String PROFILE_DIGIT_HCM_PV = "https://digit.org/fhir/StructureDefinition/DIGITHCMInventoryItem";
@@ -32,7 +29,7 @@ public class Constants {
 
     public static final String GTIN_PV = "https://www.gs1.org";
     public static final String TRADENAME_PV = "trade-name";
-    public static final String COMMONNAME_PV = "common-name";
+    public static final String COMMONNAME_PV = "alias";
     public static final String MANUFACTURER_PV = "manufacturer";
 
     // Product Variant Related Constants
@@ -46,7 +43,6 @@ public class Constants {
     public static final String FACILITY_ID_SYSTEM = "https://digit.org/fhir/facilityid";
     public static final String PRODUCT_VARIANT_IDENTIFIER_SYSTEM = "https://digit.org/fhir/productVariant-identifier";
 
-
     public static final String UOM_SYSTEM = "https://digit.org/CodeSystem/units";
     public static final String LOCATION = "Location";
     public static final String INVENTORY_ITEM = "InventoryItem";
@@ -58,7 +54,6 @@ public class Constants {
     public static final String SET_TENANT_ID = "&tenantId=";
     public static final String SET_LIMIT = "?limit=";
     public static final String LOCATION_PREFIX = "Location/";
-    public static final String ADMIN = "ADMIN";
 
     // ----- API PATH VALUES
     public static final String STOCKS_API_PATH= "/fetchAllStocks";
@@ -70,6 +65,12 @@ public class Constants {
     public static final String NEW_IDS = "newIDs";
     public static final String EXISTING_IDS = "existingIDs";
     public static final String TOTAL_PROCESSED = "totalProcessed";
-
     public static final String HIERARCHY_TYPE = "PERFORMAN";
+    public static final String PV_CATEGORY = "Bednet";
+    public static final String BALE_UNIT = "bale";
+    public static final String UNIT_QUANTITY = "10";
+    public static final String PV_LOT_NUMBER = "LN123456";
+    public static final String PV_IDENTIFIER_VALUE = "00012345600012";
+    public static final String RESPONSIBLE_ORGANIZATION = "FDC Limited";
+    public static final String LANGUAGE_NAME = "Bednet bale";
 }

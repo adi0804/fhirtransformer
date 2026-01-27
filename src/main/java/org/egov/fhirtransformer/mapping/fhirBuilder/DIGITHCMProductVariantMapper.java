@@ -129,15 +129,15 @@ public class DIGITHCMProductVariantMapper {
         inventoryItem.addCategory(new CodeableConcept().addCoding(
                 new Coding()
                         .setSystem(Constants.CATEGORY_SYSTEM_PV)
-                        .setCode("Bednet")
-                        .setDisplay("Bednet")));
+                        .setCode(Constants.PV_CATEGORY)
+                        .setDisplay(Constants.PV_CATEGORY)));
 
         // Adding baseUnit
         inventoryItem.setBaseUnit(new CodeableConcept().addCoding(
                 new Coding()
                         .setSystem(Constants.UOM_SYSTEM)
-                        .setCode("bale")
-                        .setDisplay("Bale")));
+                        .setCode(Constants.BALE_UNIT)
+                        .setDisplay(Constants.BALE_UNIT)));
         // Adding NetContent
         inventoryItem.setNetContent(new Quantity(10));
 
@@ -151,7 +151,7 @@ public class DIGITHCMProductVariantMapper {
         inventoryItem.addName(nameComponent);
 
         InventoryItem.InventoryItemNameComponent productnameComponent = new InventoryItem.InventoryItemNameComponent()
-                .setName("Bednet bale")
+                .setName(Constants.LANGUAGE_NAME)
                 .setLanguage(Enumerations.CommonLanguages.ENUS)
                 .setNameType(new Coding()
                         .setSystem(Constants.NAMETYPE_SYSTEM_PV)
@@ -160,7 +160,7 @@ public class DIGITHCMProductVariantMapper {
 
         // Adding Manufacturer as Responsible Organization
         InventoryItem.InventoryItemResponsibleOrganizationComponent responsibleOrgComponent = new InventoryItem.InventoryItemResponsibleOrganizationComponent()
-                .setOrganization(new Reference().setDisplay("FDC Limited"))
+                .setOrganization(new Reference().setDisplay(Constants.RESPONSIBLE_ORGANIZATION))
                 .setRole(new CodeableConcept().addCoding(
                         new Coding()
                                 .setSystem(Constants.RESPORG_SYSTEM_PV)
@@ -173,8 +173,8 @@ public class DIGITHCMProductVariantMapper {
         InventoryItem.InventoryItemInstanceComponent instanceComponent = new InventoryItem.InventoryItemInstanceComponent()
                 .addIdentifier(new Identifier()
                         .setSystem(Constants.GTIN_PV)
-                        .setValue("00012345600012"))
-                .setLotNumber("LN123456")
+                        .setValue(Constants.PV_IDENTIFIER_VALUE))
+                .setLotNumber(Constants.PV_LOT_NUMBER)
                 .setExpiry(expiryDate);
 
         inventoryItem.setInstance(instanceComponent);
@@ -188,9 +188,7 @@ public class DIGITHCMProductVariantMapper {
         productVariant.setTenantId(Constants.TENANT_ID);
         for (Identifier identifier : inventoryItem.getIdentifier()) {
             String system = identifier.getSystem();
-            String value = identifier.getValue();
 
-            System.out.println("System: " + system + ", Value: " + value);
             if (system.equals(Constants.IDENTIFIER_SYSTEM_PRDCT)) {
                 productVariant.setProductId(inventoryItem.getIdElement().getId());
 

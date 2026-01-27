@@ -66,17 +66,14 @@ public class FhirApiController {
         );
     }
 
-//    @GetMapping("/getFacilities")
-//    public List<Map<String, Object>> getFacilities(@RequestParam String facilityId) {
-//        return ftService.getFacilities(facilityId);
-//    }
 
     @PostMapping("/fetchAllFacilities")
     public ResponseEntity<String> fetchAllFacilities(@Valid @ModelAttribute URLParams urlParams
             , @Valid @RequestBody FacilitySearchRequest request
     ) {
         FacilityBulkResponse response = diService.fetchAllFacilities(urlParams, request);
-        if (response == null || response.getFacilities() == null) return ResponseEntity.ok("No facilities found.");
+        if (response == null || response.getFacilities() == null)
+            return ResponseEntity.ok("No facilities found.");
         String facilities = ftService.convertFacilitiesToFHIR(response.getFacilities(), urlParams, response.getTotalCount().intValue());
         return ResponseEntity.ok(facilities);
     }
@@ -97,7 +94,7 @@ public class FhirApiController {
             , @Valid @RequestBody StockSearchRequest stockRequest) {
 
         StockBulkResponse response = diService.fetchAllStocks(urlParams, stockRequest);
-        System.out.println(response.getStock());
+        logger.info(response.getStock().toString());
         if (response.getStock() == null)
             return ResponseEntity.ok("No Stock found..!");
         String stock = ftService.convertStocksToFHIR(response.getStock(),
