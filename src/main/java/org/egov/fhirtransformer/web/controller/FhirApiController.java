@@ -47,7 +47,7 @@ public class FhirApiController {
 
     @GetMapping("/health")
     public ResponseEntity<String> healthCheck() {
-        return ResponseEntity.ok("I'm fine. Thank you for asking!");
+        return ResponseEntity.ok("Service is healthy!");
     }
 
     @PostMapping("/validate")
@@ -57,7 +57,7 @@ public class FhirApiController {
         return ResponseEntity.ok(
                 isValid
                         ? "Valid FHIR resource"
-                        : "Invalid FHIR resource. errors: [" +
+                        : "Invalid FHIR resource. Errors: [" +
                         result.getMessages().stream()
                                 .filter(msg -> msg.getSeverity() != null && msg.getSeverity().name().equalsIgnoreCase("error"))
                                 .map(msg -> msg.getMessage())
@@ -73,7 +73,7 @@ public class FhirApiController {
     ) {
         FacilityBulkResponse response = diService.fetchAllFacilities(urlParams, request);
         if (response == null || response.getFacilities() == null)
-            return ResponseEntity.ok("No facilities found.");
+            return ResponseEntity.ok("No facilities found");
         String facilities = ftService.convertFacilitiesToFHIR(response.getFacilities(), urlParams, response.getTotalCount().intValue());
         return ResponseEntity.ok(facilities);
     }
@@ -95,7 +95,7 @@ public class FhirApiController {
 
         StockBulkResponse response = diService.fetchAllStocks(urlParams, stockRequest);
         if (response.getStock() == null)
-            return ResponseEntity.ok("No Stock found..!");
+            return ResponseEntity.ok("No stock found");
         logger.info(response.getStock().toString());
 
         String stock = ftService.convertStocksToFHIR(response.getStock(),
@@ -110,7 +110,7 @@ public class FhirApiController {
         StockReconciliationBulkResponse response = diService.fetchAllStockReconciliation(urlParams, stockReconciliationSearchRequest);
         System.out.println(response.getStockReconciliation());
         if (response == null || response.getStockReconciliation() == null)
-            return ResponseEntity.ok("No Stock Reconciliation found..!");
+            return ResponseEntity.ok("No Stock Reconciliation found");
         String stockReconciliation = ftService.convertStocksReconciliationToFHIR(response.getStockReconciliation(),
                 urlParams, response.getTotalCount().intValue());
         return ResponseEntity.ok(stockReconciliation);
@@ -121,7 +121,6 @@ public class FhirApiController {
             , @Valid @RequestBody RequestInfo requestInfo
     ) {
         BoundarySearchResponse response = diService.fetchAllBoundaries(boundaryRelationshipSearchCriteria, requestInfo);
-        System.out.println(response);
         String boundaries = ftService.convertBoundaryRelationshipToFHIR(response.getTenantBoundary());
         return ResponseEntity.ok(boundaries);
     }

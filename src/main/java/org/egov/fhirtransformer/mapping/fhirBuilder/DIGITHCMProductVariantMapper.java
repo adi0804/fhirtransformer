@@ -111,7 +111,7 @@ public class DIGITHCMProductVariantMapper {
                 .addProfile(Constants.PROFILE_DIGIT_HCM_PV));
 
         // Adding identifier for facility ID
-        Identifier Prdctidentifier = new Identifier()
+        Identifier productIdentifier = new Identifier()
                 .setSystem(Constants.IDENTIFIER_SYSTEM_PRDCT)
                 .setValue(productVariant.getProductId());
         Identifier identifier = new Identifier()
@@ -123,7 +123,7 @@ public class DIGITHCMProductVariantMapper {
 
         inventoryItem.addIdentifier(identifier);
         inventoryItem.addIdentifier(SKUidentifier);
-        inventoryItem.addIdentifier(Prdctidentifier);
+        inventoryItem.addIdentifier(productIdentifier);
 
         // Adding Category
         inventoryItem.addCategory(new CodeableConcept().addCoding(

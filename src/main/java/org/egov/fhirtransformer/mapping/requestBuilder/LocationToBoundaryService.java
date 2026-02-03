@@ -94,14 +94,14 @@ public class LocationToBoundaryService {
         return newandexistingids;
     }
 
-    public void callCreateOrUpdateBoundaries(HashMap<String,List<String>> newandexistingskeys, HashMap<String, BoundaryRelation> boundaryRelationMap) throws Exception {
+    public void callCreateOrUpdateBoundaries(HashMap<String,List<String>> newAndExistingIds, HashMap<String, BoundaryRelation> boundaryRelationMap) throws Exception {
         //Create StockBulkRequest for new stocks
         try{
             List<BoundaryRelation> newIds = new ArrayList<>();
             List<BoundaryRelation> existingIds = new ArrayList<>();
 
-            if (newandexistingskeys.containsKey(Constants.NEW_IDS)) {
-                for (String id : newandexistingskeys.get(Constants.NEW_IDS)) {
+            if (newAndExistingIds.containsKey(Constants.NEW_IDS)) {
+                for (String id : newAndExistingIds.get(Constants.NEW_IDS)) {
                     newIds.add(boundaryRelationMap.get(id));
                     BoundaryRelationshipRequest boundaryRelationshipRequest = new BoundaryRelationshipRequest();
                     boundaryRelationshipRequest.setRequestInfo(apiIntegrationService.formRequestInfo());
@@ -110,8 +110,8 @@ public class LocationToBoundaryService {
                     apiIntegrationService.sendRequestToAPI(boundaryRelationshipRequest, boundaryCreateUrl);
                 }
             }
-            if (newandexistingskeys.containsKey(Constants.EXISTING_IDS)) {
-                for (String id : newandexistingskeys.get(Constants.EXISTING_IDS)) {
+            if (newAndExistingIds.containsKey(Constants.EXISTING_IDS)) {
+                for (String id : newAndExistingIds.get(Constants.EXISTING_IDS)) {
                     existingIds.add(boundaryRelationMap.get(id));
                     BoundaryRelationshipRequest boundaryRelationshipRequest = new BoundaryRelationshipRequest();
                     boundaryRelationshipRequest.setRequestInfo(apiIntegrationService.formRequestInfo());

@@ -32,10 +32,10 @@ public final class MapUtils {
 
     public static HashMap<String, List<String>> splitNewAndExistingIDS(List<String> newIds, List<String> existingIds) {
 
-        HashMap<String,List<String>> newandexistingids = new HashMap<>();
+        HashMap<String,List<String>> newAndExistingIds = new HashMap<>();
         newIds.removeAll(existingIds);
-        newandexistingids.put(Constants.EXISTING_IDS, existingIds);
-        newandexistingids.put(Constants.NEW_IDS, newIds);
-        return newandexistingids;
+        newAndExistingIds.put(Constants.EXISTING_IDS, existingIds);
+        newAndExistingIds.put(Constants.NEW_IDS, newIds);
+        return newAndExistingIds;
     }
 }
