@@ -94,7 +94,6 @@ public class FhirApiController {
             , @Valid @RequestBody StockSearchRequest stockRequest) {
 
         StockBulkResponse response = diService.fetchAllStocks(urlParams, stockRequest);
-        logger.info(response.getStock().toString());
         if (response.getStock() == null)
             return ResponseEntity.ok("No Stock found..!");
         String stock = ftService.convertStocksToFHIR(response.getStock(),

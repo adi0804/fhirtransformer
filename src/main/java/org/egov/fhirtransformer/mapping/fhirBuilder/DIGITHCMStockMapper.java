@@ -224,7 +224,7 @@ public class DIGITHCMStockMapper {
 
         String reportedDateTime = inventoryReport.getReportedDateTimeElement().getValueAsString();
         OffsetDateTime odt = OffsetDateTime.parse(reportedDateTime);
-        stockRecon.setDateOfReconciliation((long) odt.getDayOfMonth());
+        stockRecon.setDateOfReconciliation((long) odt.toInstant().toEpochMilli());
 
         // Extract facility ID
         System.out.println(inventoryReport.getInventoryListingFirstRep().getLocation().getType());
