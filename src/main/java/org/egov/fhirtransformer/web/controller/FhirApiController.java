@@ -84,7 +84,7 @@ public class FhirApiController {
     ) {
         ProductVariantResponse response = diService.fetchAllProductVariants(urlParams, request);
         if (response == null || response.getProductVariant() == null) return ResponseEntity.ok("No facilities found.");
-//        String productVariants = service.convertFacilitiesToFHIR(response.getProductVariant(), urlParams, response.getTotalCount().intValue());
+//        String productVariants = ftService.convertProductVariantsToFHIR(response.getProductVariant(), urlParams, response.getTotalCount().intValue());
         String productVariants = ftService.convertProductVariantsToFHIR(response.getProductVariant(), urlParams, 10);
         return ResponseEntity.ok(productVariants);
     }
