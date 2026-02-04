@@ -2,10 +2,7 @@ package org.egov.fhirtransformer.utils;
 
 import org.egov.fhirtransformer.common.Constants;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * Utility methods for safely extracting typed values from a Map.
@@ -33,9 +30,13 @@ public final class MapUtils {
     public static HashMap<String, List<String>> splitNewAndExistingIDS(List<String> newIds, List<String> existingIds) {
 
         HashMap<String,List<String>> newAndExistingIds = new HashMap<>();
+
+        List<String> filteredNewIds = new ArrayList<>(newIds);
+        filteredNewIds.removeAll(existingIds);
+
         newIds.removeAll(existingIds);
         newAndExistingIds.put(Constants.EXISTING_IDS, existingIds);
-        newAndExistingIds.put(Constants.NEW_IDS, newIds);
+        newAndExistingIds.put(Constants.NEW_IDS, filteredNewIds);
         return newAndExistingIds;
     }
 

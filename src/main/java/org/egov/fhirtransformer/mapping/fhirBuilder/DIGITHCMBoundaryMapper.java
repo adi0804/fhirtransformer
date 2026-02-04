@@ -70,7 +70,7 @@ public class DIGITHCMBoundaryMapper {
         // Set parent code from partOf reference
         if(location.hasPartOf()){
             Reference partOfRef = location.getPartOf();
-            if(partOfRef.getReference() != null && partOfRef.getReference().startsWith(Constants.LOCATION_PREFIX)){
+            if(partOfRef != null && partOfRef.getReference() != null && partOfRef.getReference().startsWith(Constants.LOCATION_PREFIX)){
                 boundaryRelation.setParent(partOfRef.getReference().substring(Constants.LOCATION_PREFIX.length()));
             }
         }

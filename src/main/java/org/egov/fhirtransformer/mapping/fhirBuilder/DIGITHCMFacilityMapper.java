@@ -103,8 +103,13 @@ public class DIGITHCMFacilityMapper {
             facilityAddress.setCity(location.getAddress().getCity());
             facilityAddress.setPincode(location.getAddress().getPostalCode());
             if (location.getPosition() != null) {
-                facilityAddress.setLatitude(location.getPosition().getLatitude().doubleValue());
-                facilityAddress.setLongitude(location.getPosition().getLongitude().doubleValue());
+                if (location.getPosition().getLatitude() != null) {
+                    facilityAddress.setLatitude(location.getPosition().getLatitude().doubleValue());
+                }
+                if (location.getPosition().getLongitude() != null) {
+                    facilityAddress.setLongitude(location.getPosition().getLongitude().doubleValue());
+                }
+
             }
             facility.setAddress(facilityAddress);
         }
