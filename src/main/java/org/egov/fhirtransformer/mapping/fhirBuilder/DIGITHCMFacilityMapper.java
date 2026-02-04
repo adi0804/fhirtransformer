@@ -9,9 +9,16 @@ import java.util.UUID;
 
 import java.util.Date;
 
+/**
+ * Mapper utility for converting DIGIT boundary master data
+ * to FHIR {@link Location} resources and back.
+ */
 public class DIGITHCMFacilityMapper {
+
     /**
-     * @return A FHIR Location resource populated with the data from the row.
+     * Creates a FHIR {@link Location} resource from a DIGIT {@code Facility}.
+     * @param facility facility master data
+     * @return populated {@link Location} resource representing the facility
      */
     public static Location buildLocationFromFacility(Facility facility) {
 
@@ -72,6 +79,11 @@ public class DIGITHCMFacilityMapper {
         return location;
     }
 
+    /**
+     * Converts a FHIR {@link Location} resource into a DIGIT {@code Facility}.
+     * @param location FHIR Location to convert; must not be {@code null}
+     * @return populated {@code Facility} object
+     */
     public static Facility convertFhirLocationToFacility(Location location) {
         Facility facility = new Facility();
 

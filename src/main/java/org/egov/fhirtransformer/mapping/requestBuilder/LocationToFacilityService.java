@@ -15,6 +15,10 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
+/**
+ * Service responsible for transforming FHIR Location–derived
+ * {@link Facility} data into DIGIT Facility service requests.
+ */
 @Service
 public class LocationToFacilityService {
 
@@ -27,7 +31,13 @@ public class LocationToFacilityService {
     @Value("${facility.update.url}")
     private String facilityUpdateUrl;
 
-
+    /**
+     * Transforms and persists Facility records derived from Locations.
+     * @param facilityMap map of Facility ID to Facility data;
+     *                    may be empty but not {@code null}
+     * @return map containing processing metrics
+     * @throws Exception if transformation or API invocation fails
+     */
     public HashMap<String, Integer> transformLocationToFacility(HashMap<String, Facility> facilityMap) throws Exception {
         HashMap<String, Integer> results = new HashMap<>();
         try{
@@ -48,6 +58,12 @@ public class LocationToFacilityService {
         return results;
     }
 
+    /**
+     * Identifies existing and new Facility IDs by querying the Facility service.
+     * @param idList list of Facility IDs to check; must not be {@code null}
+     * @return map of new and existing Facility IDs
+     * @throws Exception if the search API invocation fails
+     */
     public HashMap<String,List<String>> checkExistingFacilities(List<String> idList) throws Exception {
 
         HashMap<String,List<String>> newandexistingids = new HashMap<>();
@@ -81,6 +97,12 @@ public class LocationToFacilityService {
         return newandexistingids;
     }
 
+    /**
+     * Creates or updates Facility records based on their existence.
+     * @param newandexistingskeys map containing new and existing Facility IDs
+     * @param facilityMap map of Facility ID to Facility data
+     * @throws Exception if API invocation for create or update fails
+     */
     public void callCreateOrUpdateFacilities(HashMap<String,List<String>> newandexistingskeys, HashMap<String, Facility> facilityMap) throws Exception {
         //Create StockBulkRequest for new stocks
         try{

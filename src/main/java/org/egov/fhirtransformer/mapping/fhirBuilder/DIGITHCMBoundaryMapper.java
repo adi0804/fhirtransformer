@@ -10,9 +10,20 @@ import org.hl7.fhir.r5.model.*;
 
 /**
  * Utility to map boundary master data rows to FHIR Location resources.
+ *This mapper handles:
+ *  Conversion of hierarchical boundary data into FHIR Location
+ *  Reverse mapping of FHIR Location back to DIGIT BoundaryRelation</li>
+ *  The generated FHIR Location follows the DIGIT HCM Boundary profile.
  */
+
 public class DIGITHCMBoundaryMapper {
 
+    /**
+     *
+     * @param enrichedBoundary
+     * @param parentLocation
+     * @return
+     */
     public static Location buildLocationFromHierarchyRelation(EnrichedBoundary enrichedBoundary, Location parentLocation){
         Location location = new Location();
         String code = enrichedBoundary.getCode();
@@ -43,6 +54,11 @@ public class DIGITHCMBoundaryMapper {
         return location;
     }
 
+    /**
+     *
+     * @param location
+     * @return
+     */
     public static BoundaryRelation convertFhirLocationToBoundaryRelation(Location location){
         BoundaryRelation boundaryRelation = new BoundaryRelation();
         //Set mandatory fields

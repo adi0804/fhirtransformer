@@ -27,6 +27,9 @@ import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Service responsible for integrating with external DIGIT domain services.
+ */
 @Service
 public class ApiIntegrationService {
 
@@ -50,6 +53,12 @@ public class ApiIntegrationService {
 
     private static final Logger logger = LoggerFactory.getLogger(FhirApiController.class);
 
+    /**
+     * Builds a URI with pagination and tenant query parameters.
+     * @param urlParams pagination and tenant parameters
+     * @param url base service URL
+     * @return constructed {@link URI}
+     */
     public URI formUri(URLParams urlParams, String url){
 
         URI uri = UriComponentsBuilder.fromHttpUrl(url)
@@ -57,11 +66,16 @@ public class ApiIntegrationService {
                 .queryParam("offset", urlParams.getOffset())
                 .queryParam("tenantId", urlParams.getTenantId())
                 .build().toUri();
-
         return uri;
-
     }
 
+    /**
+     * Builds a URI for boundary relationship search using provided criteria.
+     *
+     * @param criteria boundary relationship search criteria
+     * @param url base boundary search URL
+     * @return constructed {@link URI}
+     */
     public URI formBoundaryUri(BoundaryRelationshipSearchCriteria criteria, String url) {
 
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(url);
@@ -88,7 +102,13 @@ public class ApiIntegrationService {
         return builder.build().toUri();
     }
 
-
+    /**
+     * Fetches Facility records from the Facility service.
+     *
+     * @param urlParams pagination and tenant parameters
+     * @param facilitySearchRequest facility search request payload
+     * @return {@link FacilityBulkResponse}, or {@code null} if the response is empty
+     */
     public FacilityBulkResponse fetchAllFacilities(URLParams urlParams, FacilitySearchRequest facilitySearchRequest) {
 
         URI uri = formUri(urlParams,facilityUrl);
@@ -109,6 +129,13 @@ public class ApiIntegrationService {
         return response.getBody();
     }
 
+    /**
+     * Fetches ProductVariant records from the Product service.
+     *
+     * @param urlParams pagination and tenant parameters
+     * @param productVariantSearchRequest product variant search request payload
+     * @return {@link ProductVariantResponse}, or {@code null} if the response is empty
+     */
     public ProductVariantResponse fetchAllProductVariants(URLParams urlParams, ProductVariantSearchRequest productVariantSearchRequest) {
 
         URI uri = formUri(urlParams,productVariantUrl);
@@ -129,6 +156,13 @@ public class ApiIntegrationService {
         return response.getBody();
     }
 
+    /**
+     * Fetches Stock records from the Stock service.
+     *
+     * @param urlParams pagination and tenant parameters
+     * @param stockRequest stock search request payload
+     * @return {@link StockBulkResponse}, or {@code null} if the response is empty
+     */
     public StockBulkResponse fetchAllStocks(URLParams urlParams, StockSearchRequest stockRequest) {
 
         URI uri = formUri(urlParams,stockSearchUrl);
@@ -150,6 +184,13 @@ public class ApiIntegrationService {
         return response.getBody();
     }
 
+    /**
+     * Fetches StockReconciliation records from the Stock Reconciliation service.
+     *
+     * @param urlParams pagination and tenant parameters
+     * @param stockReconciliationSearchRequest stock reconciliation search request payload
+     * @return {@link StockReconciliationBulkResponse}, or {@code null} if the response is empty
+     */
     public StockReconciliationBulkResponse fetchAllStockReconciliation(URLParams urlParams, StockReconciliationSearchRequest stockReconciliationSearchRequest) {
 
         URI uri = formUri(urlParams,stockReconciliationUrl);
@@ -170,6 +211,13 @@ public class ApiIntegrationService {
         return response.getBody();
     }
 
+    /**
+     * Fetches Boundary relationship records from the Boundary service.
+     *
+     * @param boundaryRelationshipSearchCriteria boundary search criteria
+     * @param requestInfo request metadata
+     * @return {@link BoundarySearchResponse}, or {@code null} if the response is empty
+     */
     public BoundarySearchResponse fetchAllBoundaries( BoundaryRelationshipSearchCriteria boundaryRelationshipSearchCriteria,RequestInfo requestInfo) {
         URI uri = formBoundaryUri(boundaryRelationshipSearchCriteria, boundaryRelationshipUrl);
         HttpHeaders headers = new HttpHeaders();
@@ -189,6 +237,14 @@ public class ApiIntegrationService {
         return response.getBody();
     }
 
+    /**
+     * Sends a POST request to an external service endpoint.
+     *
+     * @param requestBody request payload
+     * @param url target service URL
+     * @param <T> request payload type
+     * @return {@link ResponseEntity} containing {@link ResponseInfo}
+     */
     public <T> ResponseEntity<ResponseInfo> sendRequestToAPI(T requestBody, String url) {
 
         URI uri = URI.create(url);
@@ -203,6 +259,12 @@ public class ApiIntegrationService {
         );
     }
 
+    /**
+     * Creates pagination and tenant parameters for search requests.
+     *
+     * @param idList list of entity identifiers
+     * @return populated {@link URLParams}
+     */
     public URLParams formURLParams(List<String> idList) {
         URLParams urlParams = new URLParams();
         urlParams.setLimit(idList.size());
@@ -211,6 +273,11 @@ public class ApiIntegrationService {
         return urlParams;
     }
 
+    /**
+     * Creates {@link RequestInfo} with default tenant and user metadata.
+     *
+     * @return populated {@link RequestInfo}
+     */
     public RequestInfo formRequestInfo() {
         RequestInfo requestInfo = new RequestInfo();
         requestInfo.setAuthToken("");

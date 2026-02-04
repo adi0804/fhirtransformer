@@ -15,6 +15,11 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
+/**
+ * Service responsible for transforming FHIR InventoryItem–derived
+ * {@link ProductVariant} data into DIGIT Product service requests.
+ */
+
 @Service
 public class InventoryItemToProductVariant {
 
@@ -28,6 +33,13 @@ public class InventoryItemToProductVariant {
     private String productVariantUpdateUrl;
 
 
+    /**
+     * Transforms and persists ProductVariants derived from InventoryItems.
+     * @param productVariantMap map of ProductVariant ID to ProductVariant data;
+     *                          may be empty but not {@code null}
+     * @return map containing processing metrics
+     * @throws Exception if transformation or API invocation fails
+     */
     public HashMap<String, Integer> transformInventoryItemToProductVariant(HashMap<String, ProductVariant> productVariantMap) throws Exception {
 
         HashMap<String, Integer> results = new HashMap<>();
@@ -49,6 +61,12 @@ public class InventoryItemToProductVariant {
         }
     }
 
+    /**
+     * Identifies existing and new ProductVariant IDs by querying the Product service.
+     * @param productVariantIds list of ProductVariant IDs to check; must not be {@code null}
+     * @return map of new and existing ProductVariant IDs
+     * @throws Exception if the search API invocation fails
+     */
     public HashMap<String,List<String>> checkExistingProductvariant
             (List<String> productVariantIds) throws Exception {
 
@@ -83,6 +101,12 @@ public class InventoryItemToProductVariant {
         return newandexistingids;
     }
 
+    /**
+     * Creates or updates ProductVariants based on their existence in the system.
+     * @param newandexistingProductVariant map containing new and existing ProductVariant IDs
+     * @param productVariantMap map of ProductVariant ID to ProductVariant data
+     * @throws Exception if API invocation for create or update fails
+     */
     public void callCreateOrUpdateProductVariant(HashMap<String,List<String>> newandexistingProductVariant, HashMap<String, ProductVariant> productVariantMap) throws Exception {
         //Create ProductVariantRequest for new ProductVariant
         try{

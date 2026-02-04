@@ -9,10 +9,16 @@ import java.util.UUID;
 import java.util.Date;
 
 /**
- * Utility to map Stock API search data to FHIR InventoryItem resources.
+ * Mapper utility for converting DIGIT Stock domain models
+ * to FHIR resources and back.
  */
 public class DIGITHCMStockMapper {
 
+    /**
+     * Creates a FHIR {@link SupplyDelivery} resource from a DIGIT {@link Stock}.
+     * @param stock stock transaction data; must not be {@code null}
+     * @return populated {@link SupplyDelivery} resource
+     */
     public static SupplyDelivery buildSupplyDeliveryFromStock(Stock stock) {
 
         SupplyDelivery supplyDelivery = new SupplyDelivery();
@@ -81,6 +87,11 @@ public class DIGITHCMStockMapper {
         return supplyDelivery;
     }
 
+    /**
+     * Creates a FHIR {@link InventoryReport} resource from a {@link StockReconciliation}.
+     * @param stockReconciliation stock reconciliation data; must not be {@code null}
+     * @return populated {@link InventoryReport} resource
+     */
     public static InventoryReport buildInventoryReportFromStockReconciliation(StockReconciliation stockReconciliation) {
 
         InventoryReport inventoryReport = new InventoryReport();
@@ -122,7 +133,11 @@ public class DIGITHCMStockMapper {
         return inventoryReport;
     }
 
-
+    /**
+     * Converts a FHIR {@link SupplyDelivery} resource into a DIGIT {@link Stock}.
+     * @param supplyDelivery FHIR SupplyDelivery to convert; must not be {@code null}
+     * @return populated {@link Stock} object
+     */
     public static Stock buildStockFromSupplyDelivery(SupplyDelivery supplyDelivery) {
         // Implementation for reverse mapping if needed
         Stock stock = new Stock();
@@ -213,6 +228,12 @@ public class DIGITHCMStockMapper {
         }
         return stock;
     }
+
+    /**
+     * Converts a FHIR {@link InventoryReport} resource into a {@link StockReconciliation}.
+     * @param inventoryReport FHIR InventoryReport to convert; must not be {@code null}
+     * @return populated {@link StockReconciliation} object
+     */
 
     public static StockReconciliation buildStockReconFromInventoryReport(InventoryReport inventoryReport) {
 

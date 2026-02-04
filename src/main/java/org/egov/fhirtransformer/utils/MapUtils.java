@@ -27,6 +27,12 @@ public final class MapUtils {
         return value != null ? (Long) value : null;
     }
 
+    /**
+     * 
+     * @param newIds
+     * @param existingIds
+     * @return
+     */
     public static HashMap<String, List<String>> splitNewAndExistingIDS(List<String> newIds, List<String> existingIds) {
 
         HashMap<String,List<String>> newAndExistingIds = new HashMap<>();

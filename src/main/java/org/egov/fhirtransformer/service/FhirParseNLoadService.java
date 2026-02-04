@@ -26,6 +26,10 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Service responsible for parsing FHIR Bundles and loading
+ * corresponding DIGIT domain entities.
+ */
 @Service
 public class FhirParseNLoadService {
 
@@ -54,6 +58,12 @@ public class FhirParseNLoadService {
     @Autowired
     private KafkaProducerService kafkaService;
 
+    /**
+     * Parses a FHIR Bundle JSON and loads supported resources into DIGIT services
+     * @param fhirJson FHIR Bundle payload as JSON
+     * @return map of entity name to processing metrics
+     * @throws Exception if downstream service invocation fails
+     */
     public HashMap<String, HashMap<String, Integer>> parseAndLoadFHIRResource(String fhirJson) throws Exception {
         HashMap<String, HashMap<String, Integer>> entityResults = new HashMap<>();
         // Parse the FHIR resource

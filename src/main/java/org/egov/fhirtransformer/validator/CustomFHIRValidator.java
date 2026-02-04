@@ -25,13 +25,24 @@ import java.util.Objects;
 
 import org.springframework.stereotype.Component;
 
+/**
+ * Custom FHIR R5 validator configured with DIGIT-specific profiles
+ * and terminology support.
+ */
 @Component
 public class CustomFHIRValidator {
     private final FhirContext ctx = FhirContext.forR5();
     private final FhirValidator validator;
     private final PrePopulatedValidationSupport support = new PrePopulatedValidationSupport(ctx);
 
-
+    /**
+     * Initializes the FHIR validator and loads custom validation profiles.
+     *
+     * <p>Profiles, CodeSystems, and ValueSets are loaded from the
+     * {@code /profiles} classpath directory.
+     *
+     * @throws RuntimeException if profiles cannot be loaded
+     */
     public CustomFHIRValidator() {
         loadProfiles("profiles");
 
@@ -46,6 +57,13 @@ public class CustomFHIRValidator {
         validator.registerValidatorModule(instanceValidator);
     }
 
+    /**
+     * Loads FHIR StructureDefinitions, CodeSystems, and ValueSets
+     * from the specified classpath directory.
+     *
+     * @param folderName classpath folder containing FHIR profile definitions
+     * @throws RuntimeException if profiles cannot be loaded or parsed
+     */
     private void loadProfiles(String folderName) {
         try {
             Path folderPath = Paths.get(Objects.requireNonNull(
@@ -76,6 +94,12 @@ public class CustomFHIRValidator {
         }
     }
 
+    /**
+     * Validates a FHIR JSON payload against configured validation rules.
+     *
+     * @param fhirJson FHIR resource payload as JSON
+     * @return {@link ValidationResult} containing validation errors and warnings
+     */
     public ValidationResult validate(String fhirJson) {
         IBaseResource resource = ctx.newJsonParser().parseResource(fhirJson);
         return validator.validateWithResult(resource);

@@ -27,6 +27,17 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 
+/**
+ * REST controller exposing FHIR transformation and ingestion APIs.
+ *
+ * <p>This controller:
+ * <ul>
+ *   <li>Validates incoming FHIR resources</li>
+ *   <li>Fetches DIGIT domain data and exposes it as FHIR Bundles</li>
+ *   <li>Consumes FHIR Bundles and loads them into DIGIT services</li>
+ *   <li>Publishes validation and processing failures to Kafka</li>
+ * </ul>
+ */
 @RestController
 @RequestMapping("/fhir-api")
 public class FhirApiController {
@@ -45,11 +56,22 @@ public class FhirApiController {
 
     private static final Logger logger = LoggerFactory.getLogger(FhirApiController.class);
 
+    /**
+     * Health check endpoint for service availability.
+     * @return health status message
+     */
     @GetMapping("/health")
     public ResponseEntity<String> healthCheck() {
         return ResponseEntity.ok("Service is healthy!");
     }
 
+    /**
+     * Validates a FHIR JSON payload against configured FHIR profiles.
+     *
+     * @param fhirJson FHIR resource payload as JSON
+     * @return validation status message
+     * @throws JsonProcessingException if payload parsing fails
+     */
     @PostMapping("/validate")
     public ResponseEntity<String> validateFHIR(@RequestBody String fhirJson) throws JsonProcessingException {
         ValidationResult result = ftService.validateFHIRResource(fhirJson);
@@ -66,7 +88,13 @@ public class FhirApiController {
         );
     }
 
-
+    /**
+     * Fetches Facility data and returns it as a FHIR Location Bundle.
+     *
+     * @param urlParams pagination and tenant parameters
+     * @param request facility search request
+     * @return FHIR Bundle serialized as JSON, or message if no data found
+     */
     @PostMapping("/fetchAllFacilities")
     public ResponseEntity<String> fetchAllFacilities(@Valid @ModelAttribute URLParams urlParams
             , @Valid @RequestBody FacilitySearchRequest request
@@ -80,6 +108,13 @@ public class FhirApiController {
         return ResponseEntity.ok(facilities);
     }
 
+    /**
+     * Fetches ProductVariant data and returns it as a FHIR InventoryItem Bundle.
+     *
+     * @param urlParams pagination and tenant parameters
+     * @param request product variant search request
+     * @return FHIR Bundle serialized as JSON, or message if no data found
+     */
     @PostMapping("/fetchAllProductVariants")
     public ResponseEntity<String> fetchAllProductVariants(@Valid @ModelAttribute URLParams urlParams
             , @Valid @RequestBody ProductVariantSearchRequest request
@@ -91,6 +126,13 @@ public class FhirApiController {
         return ResponseEntity.ok(productVariants);
     }
 
+    /**
+     * Fetches Stock data and returns it as a FHIR SupplyDelivery Bundle.
+     *
+     * @param urlParams pagination and tenant parameters
+     * @param stockRequest stock search request
+     * @return FHIR Bundle serialized as JSON, or message if no data found
+     */
     @PostMapping("/fetchAllStocks")
     public ResponseEntity<String> fetchAllStocks(@Valid @ModelAttribute URLParams urlParams
             , @Valid @RequestBody StockSearchRequest stockRequest) {
@@ -106,6 +148,13 @@ public class FhirApiController {
         return ResponseEntity.ok(stock);
     }
 
+    /**
+     * Fetches StockReconciliation data and returns it as a FHIR InventoryReport Bundle.
+     *
+     * @param urlParams pagination and tenant parameters
+     * @param stockReconciliationSearchRequest stock reconciliation search request
+     * @return FHIR Bundle serialized as JSON, or message if no data found
+     */
     @PostMapping("/fetchAllStockReconciliation")
     public ResponseEntity<String> fetchAllStockReconciliation(@Valid @ModelAttribute URLParams urlParams,
                                                               @Valid @RequestBody StockReconciliationSearchRequest stockReconciliationSearchRequest) {
@@ -121,6 +170,13 @@ public class FhirApiController {
         return ResponseEntity.ok(stockReconciliation);
     }
 
+    /**
+     * Fetches boundary hierarchy data and returns it as a FHIR Location Bundle.
+     *
+     * @param boundaryRelationshipSearchCriteria boundary search criteria
+     * @param requestInfo request metadata
+     * @return FHIR Bundle serialized as JSON
+     */
     @PostMapping("/fetchAllBoundaries")
     public ResponseEntity<String> fetchAllBoundaries(@Valid @ModelAttribute BoundaryRelationshipSearchCriteria boundaryRelationshipSearchCriteria
             , @Valid @RequestBody RequestInfo requestInfo
@@ -130,12 +186,19 @@ public class FhirApiController {
         return ResponseEntity.ok(boundaries);
     }
 
+    /**
+     * Consumes a FHIR Bundle payload and loads supported resources into DIGIT services.
+     *
+     * @param fhirJson FHIR Bundle payload as JSON
+     * @return processing result or error message
+     * @throws Exception if downstream processing fails
+     */
     @PostMapping("/consumeFHIR")
     public ResponseEntity<String> consumeFHIR(@RequestBody String fhirJson) throws Exception {
 
         HashMap<String, HashMap<String, Integer>> response = new HashMap<>();
         try {
-//           Parse incoming FHIR JSON
+            //Parse incoming FHIR JSON
             JsonNode root = new ObjectMapper().readTree(fhirJson);
             String bundleId = root.path("id").asText();
 

@@ -92,6 +92,11 @@ public class DIGITHCMProductVariantMapper {
 //        return inventoryItem;
 //    }
 
+    /**
+     * Creates a FHIR {@link InventoryItem} resource from a {@link ProductVariant}.
+     * @param productVariant
+     * @return InventoryItem
+     */
     public static InventoryItem buildInventoryFromProductVariant(ProductVariant productVariant) {
 
         InventoryItem inventoryItem = new InventoryItem();
@@ -182,6 +187,11 @@ public class DIGITHCMProductVariantMapper {
         return inventoryItem;
     }
 
+    /**
+     * Converts a FHIR {@link InventoryItem} resource into a DIGIT {@link ProductVariant}.
+     * @param inventoryItem FHIR InventoryItem to convert; must not be {@code null}
+     * @return populated {@link ProductVariant} object
+     */
     public static ProductVariant buildProductVariantFromInventoryItem(InventoryItem inventoryItem) {
         ProductVariant productVariant = new ProductVariant();
         //Defaulting the values for mandatory fields

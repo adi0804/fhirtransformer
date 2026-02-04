@@ -14,6 +14,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+/**
+ * Service responsible for transforming FHIR InventoryReport–derived
+ * {@link StockReconciliation} data into DIGIT Stock Reconciliation requests.
+ */
 @Service
 public class InventoryReportToStockReconciliationService {
 
@@ -26,7 +30,13 @@ public class InventoryReportToStockReconciliationService {
     @Value("${stock.recon.update.url}")
     private String stockReconUpdateUrl;
 
-
+    /**
+     * Transforms and persists StockReconciliation records derived from InventoryReports.
+     * @param stockReconciliationMap map of StockReconciliation ID to data;
+     *                               may be empty but not {@code null}
+     * @return map containing processing metrics
+     * @throws Exception if transformation or API invocation fails
+     */
     public HashMap<String, Integer> transformInventoryReportToStockReconciliation(HashMap<String, StockReconciliation> stockReconciliationMap) throws Exception {
 
         HashMap<String, Integer> results = new HashMap<>();
@@ -46,6 +56,12 @@ public class InventoryReportToStockReconciliationService {
         return results;
     }
 
+    /**
+     * Identifies existing and new StockReconciliation IDs by querying the Stock service.
+     * @param stockReconIds list of StockReconciliation IDs to check; must not be {@code null}
+     * @return map of new and existing StockReconciliation IDs
+     * @throws Exception if the search API invocation fails
+     */
     public HashMap<String,List<String>> checkExistingStockRecon(List<String> stockReconIds) throws Exception {
 
         HashMap<String,List<String>> newandexistingids = new HashMap<>();
@@ -80,6 +96,12 @@ public class InventoryReportToStockReconciliationService {
         return newandexistingids;
     }
 
+    /**
+     * Creates or updates StockReconciliation records based on their existence.
+     * @param newandexistingStockReconciliation map containing new and existing IDs
+     * @param stockReconciliationHashMap map of StockReconciliation ID to data
+     * @throws Exception if API invocation for create or update fails
+     */
     public void callCreateOrUpdateStockReconciliation(HashMap<String,List<String>> newandexistingStockReconciliation, HashMap<String, StockReconciliation> stockReconciliationHashMap) throws Exception {
         //Create StockReconciliationBulkRequest for new StockReconciliation
         try{
@@ -114,7 +136,7 @@ public class InventoryReportToStockReconciliationService {
                 }
             }
         } catch (Exception e) {
-            throw new Exception("Error in call CreateOrUpdate Stock Reconcilation: " + e.getMessage());
+            throw new Exception("Error in call CreateOrUpdate Stock Reconciliation: " + e.getMessage());
         }
     }
 }

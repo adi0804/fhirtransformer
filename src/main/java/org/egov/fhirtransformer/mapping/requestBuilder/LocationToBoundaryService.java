@@ -16,6 +16,10 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
+/**
+ * Service responsible for transforming FHIR Location–derived
+ * {@link BoundaryRelation} data into DIGIT Boundary service requests.
+ */
 @Service
 public class LocationToBoundaryService {
 
@@ -28,6 +32,13 @@ public class LocationToBoundaryService {
     @Value("${boundary.update.url}")
     private String boundaryUpdateUrl;
 
+    /**
+     * Transforms and persists BoundaryRelation records derived from Locations.
+     * @param boundaryRelationMap map of boundary ID to BoundaryRelation data;
+     *                            may be empty but not {@code null}
+     * @return map containing processing metrics
+     * @throws Exception if transformation or API invocation fails
+     */
     public HashMap<String, Integer> transformLocationToBoundary(HashMap<String, BoundaryRelation> boundaryRelationMap) throws Exception {
         HashMap<String, Integer> results = new HashMap<>();
         try{
@@ -45,6 +56,13 @@ public class LocationToBoundaryService {
         return results;
     }
 
+    /**
+     * Updates parent boundary references using in-memory BoundaryRelation data.
+     * @param boundaryRelationMap map of boundary ID to BoundaryRelation data;
+     *                            must not be {@code null}
+     * @return updated map with resolved parent boundary codes
+     * @throws Exception if parent resolution fails
+     */
     public HashMap<String, BoundaryRelation> updateBoundaryRelationParent(HashMap<String, BoundaryRelation> boundaryRelationMap) throws Exception {
         try{
             for (String key : boundaryRelationMap.keySet()) {
@@ -63,6 +81,12 @@ public class LocationToBoundaryService {
         return boundaryRelationMap;
     }
 
+    /**
+     * Identifies existing and new boundary IDs by querying the Boundary service.
+     * @param idList list of boundary IDs to check; must not be {@code null}
+     * @return map of new and existing boundary IDs
+     * @throws Exception if the search API invocation fails
+     */
     public HashMap<String,List<String>> checkExistingBoundaries(List<String> idList) throws Exception {
 
         HashMap<String,List<String>> newandexistingids = new HashMap<>();
@@ -90,6 +114,12 @@ public class LocationToBoundaryService {
         return newandexistingids;
     }
 
+    /**
+     * Creates or updates BoundaryRelation records based on their existence.
+     * @param newAndExistingIds map containing new and existing boundary IDs
+     * @param boundaryRelationMap map of boundary ID to BoundaryRelation data
+     * @throws Exception if API invocation for create or update fails
+     */
     public void callCreateOrUpdateBoundaries(HashMap<String,List<String>> newAndExistingIds, HashMap<String, BoundaryRelation> boundaryRelationMap) throws Exception {
         //Create StockBulkRequest for new stocks
         try{

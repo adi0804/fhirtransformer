@@ -15,6 +15,10 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
+/**
+ * Service responsible for transforming FHIR SupplyDelivery–derived
+ * {@link Stock} data into DIGIT Stock service requests.
+ */
 @Service
 public class SupplyDeliveryToStockService {
 
@@ -27,6 +31,13 @@ public class SupplyDeliveryToStockService {
     @Value("${stock.update.url}")
     private String stockUpdateUrl;
 
+    /**
+     * Transforms and persists Stock records derived from SupplyDelivery resources.
+     * @param supplyDeliveryMap map of Stock ID to Stock data;
+     *                          may be empty but not {@code null}
+     * @return map containing processing metrics
+     * @throws Exception if transformation or API invocation fails
+     */
     public HashMap<String, Integer> transformSupplyDeliveryToStock(HashMap<String, Stock> supplyDeliveryMap) throws Exception {
 
         HashMap<String, Integer> results = new HashMap<>();
@@ -48,6 +59,12 @@ public class SupplyDeliveryToStockService {
         return results;
     }
 
+    /**
+     * Identifies existing and new Stock IDs by querying the Stock service.
+     * @param stockIds list of Stock IDs to check; must not be {@code null}
+     * @return map of new and existing Stock IDs
+     * @throws Exception if the search API invocation fails
+     */
     public HashMap<String,List<String>> checkExistingStocks(List<String> stockIds) throws Exception {
 
         HashMap<String,List<String>> newandexistingids = new HashMap<>();
@@ -81,6 +98,12 @@ public class SupplyDeliveryToStockService {
         return newandexistingids;
     }
 
+    /**
+     * Creates or updates Stock records based on their existence.
+     * @param newandexistingstocks map containing new and existing Stock IDs
+     * @param supplyDeliveryMap map of Stock ID to Stock data
+     * @throws Exception if API invocation for create or update fails
+     */
     public void callCreateOrUpdateStocks(HashMap<String,List<String>> newandexistingstocks, HashMap<String, Stock> supplyDeliveryMap) throws Exception {
         //Create StockBulkRequest for new stocks
         try{

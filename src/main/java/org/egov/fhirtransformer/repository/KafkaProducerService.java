@@ -16,6 +16,9 @@ import java.time.Instant;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Kafka producer service for publishing FHIR processing failures.
+ */
 @Service
 public class KafkaProducerService {
 
@@ -33,6 +36,22 @@ public class KafkaProducerService {
         this.kafkaTemplate = kafkaTemplate;
     }
 
+    /**
+     * Publishes FHIR bundle validation errors to the Dead Letter Queue (DLQ).
+     *
+     * <p>The published message contains:
+     * <ul>
+     *   <li>Bundle identifier</li>
+     *   <li>Timestamp of failure</li>
+     *   <li>Original FHIR payload</li>
+     *   <li>List of validation error messages</li>
+     * </ul>
+     *
+     * @param result validation result containing FHIR validation messages
+     * @param bundleId identifier of the processed FHIR bundle
+     * @param fhirJson original FHIR payload as JSON
+     * @throws JsonProcessingException if message serialization fails
+     */
     public void publishToDLQ(ValidationResult result, String bundleId, JsonNode fhirJson) throws JsonProcessingException {
 
         List<String> errorList = result.getMessages().stream()
@@ -55,6 +74,19 @@ public class KafkaProducerService {
     }
 
 
+    /**
+     * Publishes individual FHIR resource processing failures to the failed topic.
+     * <p>The published message contains:
+     * <ul>
+     *   <li>FHIR resource ID</li>
+     *   <li>FHIR resource type</li>
+     *   <li>FHIR resource payload</li>
+     *   <li>Error reason for the failure</li>
+     * </ul>
+     * @param entry bundle entry containing the failed FHIR resource
+     * @param errorMessage reason for the resource processing failure
+     * @throws RuntimeException if message serialization fails
+     */
     public void publishFhirResourceFailures(Bundle.BundleEntryComponent entry, String errorMessage) {
 
         String finalJson;

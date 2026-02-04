@@ -5,8 +5,20 @@ import org.egov.fhirtransformer.common.Constants;
 import org.hl7.fhir.r5.model.*;
 import java.util.*;
 
+/**
+ * Utility class for constructing FHIR {@link Bundle} resources.
+ */
 public class BundleBuilder {
 
+    /**
+     * Builds a FHIR SEARCHSET Bundle from a list of resources.
+     * @param resources list of FHIR resources to include
+     * @param urlParams pagination and tenant parameters
+     * @param totalCount total number of records available
+     * @param apiPath base API path used for bundle links
+     * @param <T> type of FHIR resource
+     * @return populated {@link Bundle}
+     */
     public static <T extends Resource> Bundle buildBundle(
             List<T> resources, URLParams urlParams, int totalCount, String apiPath) {
 
@@ -20,6 +32,11 @@ public class BundleBuilder {
         return bundle;
     }
 
+    /**
+     * Creates an empty FHIR SEARCHSET Bundle with metadata populated.
+     * @param totalCount total number of records available
+     * @return initialized {@link Bundle}
+     */
     public static Bundle createSearchSetBundle(int totalCount){
         Bundle bundle = new Bundle();
         bundle.setType(Bundle.BundleType.SEARCHSET);
@@ -29,6 +46,14 @@ public class BundleBuilder {
         return bundle;
     }
 
+    /**
+     * Adds pagination links to a FHIR Bundle.
+     * @param bundle target FHIR Bundle
+     * @param urlParams pagination and tenant parameters
+     * @param totalCount total number of records available
+     * @param apiPath base API path used for bundle links
+     * @return updated {@link Bundle}
+     */
     public static Bundle addBundleLink(Bundle bundle, URLParams urlParams, int totalCount, String apiPath){
 
         String baseUrl = apiPath + Constants.SET_LIMIT
@@ -50,6 +75,11 @@ public class BundleBuilder {
         return bundle;
     }
 
+    /**
+     * Builds a FHIR SEARCHSET Bundle for boundary Location resources.
+     * @param locations list of boundary {@link Location} resources
+     * @return populated {@link Bundle}
+     */
     public static Bundle buildBoundaryLocationBundle(List<Location> locations){
         Bundle bundle = new Bundle();
         bundle.setType(Bundle.BundleType.SEARCHSET);
@@ -64,6 +94,12 @@ public class BundleBuilder {
         return bundle;
     }
 
+    /**
+     * Populates processing metrics for new and existing entities.
+     * @param results map containing processing results
+     * @param newAndExistingMap map of new and existing entity IDs
+     * @return updated results map with metrics
+     */
     public static HashMap<String, Integer> fetchMetrics(HashMap<String, Integer> results, HashMap<String, List<String>> newAndExistingMap) {
         results.put(Constants.NEW_IDS,
                 newAndExistingMap.getOrDefault(Constants.NEW_IDS,
