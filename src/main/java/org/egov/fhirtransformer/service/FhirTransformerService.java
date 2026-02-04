@@ -12,7 +12,6 @@ import org.egov.fhirtransformer.common.Constants;
 import org.egov.fhirtransformer.mapping.fhirBuilder.DIGITHCMFacilityMapper;
 import org.egov.fhirtransformer.mapping.fhirBuilder.DIGITHCMProductVariantMapper;
 import org.egov.fhirtransformer.mapping.fhirBuilder.DIGITHCMStockMapper;
-import org.egov.fhirtransformer.repository.FhirTransformerRepository;
 import org.egov.fhirtransformer.utils.BundleBuilder;
 import org.egov.fhirtransformer.validator.CustomFHIRValidator;
 import org.hl7.fhir.r5.model.*;
@@ -31,24 +30,14 @@ import static org.egov.fhirtransformer.mapping.fhirBuilder.DIGITHCMBoundaryMappe
 @Service
 public class FhirTransformerService {
 
-    @Autowired
-    private RestTemplate restTemplate;
 
     @Autowired
     private CustomFHIRValidator validator;
-
-    @Autowired
-    private FhirTransformerRepository repository;
-
-    @Autowired
-    private RedisTemplate<String, Object> redisTemplate;
+    
 
     private final FhirContext ctx = FhirContext.forR5();
     public ValidationResult validateFHIRResource(String fhirJson) {
         return validator.validate(fhirJson);
-    }
-    public List<Map<String, Object>> getFacilities(String facilityId) {
-        return repository.getFacilities(facilityId);
     }
 
 
