@@ -71,7 +71,6 @@ public class BundleBuilder {
         results.put(Constants.EXISTING_IDS,
                 newAndExistingMap.getOrDefault(Constants.EXISTING_IDS,
                         Collections.emptyList()).size());
-        System.out.println(results);
         return results;
     }
 }

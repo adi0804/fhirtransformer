@@ -227,7 +227,6 @@ public class DIGITHCMStockMapper {
         stockRecon.setDateOfReconciliation((long) odt.toInstant().toEpochMilli());
 
         // Extract facility ID
-        System.out.println(inventoryReport.getInventoryListingFirstRep().getLocation().getType());
         stockRecon.setFacilityId(
                 inventoryReport.getInventoryListingFirstRep()
                         .getLocation()

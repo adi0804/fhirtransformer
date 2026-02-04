@@ -113,7 +113,6 @@ public class ApiIntegrationService {
                 entity,
                 ProductVariantResponse.class
         );
-        System.out.println("Response: " + response.getBody());
         return response.getBody();
     }
 
@@ -151,7 +150,6 @@ public class ApiIntegrationService {
 
     public BoundarySearchResponse fetchAllBoundaries( BoundaryRelationshipSearchCriteria boundaryRelationshipSearchCriteria,RequestInfo requestInfo) {
         URI uri = formBoundaryUri(boundaryRelationshipSearchCriteria, boundaryRelationshipUrl);
-        System.out.println(uri);
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity<RequestInfo> entity = new HttpEntity<>(requestInfo, headers);
@@ -167,7 +165,6 @@ public class ApiIntegrationService {
     public <T> ResponseEntity<ResponseInfo> sendRequestToAPI(T requestBody, String url) {
 
         URI uri = URI.create(url);
-        System.out.println("URL: " + uri);
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity<Object> entity = new HttpEntity<>(requestBody, headers);

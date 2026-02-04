@@ -31,14 +31,11 @@ public class LocationToBoundaryService {
     public HashMap<String, Integer> transformLocationToBoundary(HashMap<String, BoundaryRelation> boundaryRelationMap) throws Exception {
         HashMap<String, Integer> results = new HashMap<>();
         try{
-//            boundaryRelationMap = updateBoundaryRelationParent(boundaryRelationMap);
-//            System.out.println("updated parent boundary" + boundaryRelationMap);
             List<String> idList = new ArrayList<>(boundaryRelationMap.keySet());
             if (!idList.isEmpty()) {
                 HashMap<String, List<String>> newAndExistingIdsMap = checkExistingBoundaries(idList);
                 //call create or update based on existing or new stocks
                 callCreateOrUpdateBoundaries(newAndExistingIdsMap, boundaryRelationMap);
-
                 results.put(Constants.TOTAL_PROCESSED, boundaryRelationMap.size());
                 results = BundleBuilder.fetchMetrics(results, newAndExistingIdsMap);
             }
@@ -75,7 +72,6 @@ public class LocationToBoundaryService {
                 criteria.setCodes(List.of(id));
                 criteria.setTenantId(Constants.TENANT_ID);
                 BoundarySearchResponse boundarySearchResponse = apiIntegrationService.fetchAllBoundaries(criteria, apiIntegrationService.formRequestInfo());
-                System.out.println("Boundary Search Response for id " + id + ": " + boundarySearchResponse);
                 if(!boundarySearchResponse.getTenantBoundary().isEmpty()){
                     List<String> existingIds = new ArrayList<>();
                     existingIds.add(id);
