@@ -227,19 +227,33 @@ public class DIGITHCMStockMapper {
         stockRecon.setDateOfReconciliation((long) odt.toInstant().toEpochMilli());
 
         // Extract facility ID
-        stockRecon.setFacilityId(
-                inventoryReport.getInventoryListingFirstRep()
-                        .getLocation()
-                        .getIdentifier()
-                        .getValue());
+        if (inventoryReport.getInventoryListingFirstRep() != null
+                && inventoryReport.getInventoryListingFirstRep().getLocation() != null
+                && inventoryReport.getInventoryListingFirstRep().getLocation().getIdentifier() != null) {
+            stockRecon.setFacilityId(
+                    inventoryReport.getInventoryListingFirstRep()
+                            .getLocation()
+                            .getIdentifier()
+                            .getValue()
+            );
+        }
 
         // Extract Product Variant ID
-        stockRecon.setProductVariantId(inventoryReport.getInventoryListingFirstRep()
-                        .getItemFirstRep()
-                        .getItem()
-                        .getReference()
-                        .getIdentifier()
-                        .getValue());
+
+        if (inventoryReport.getInventoryListingFirstRep() != null
+                && inventoryReport.getInventoryListingFirstRep().getItemFirstRep() != null
+                && inventoryReport.getInventoryListingFirstRep().getItemFirstRep().getItem() != null
+                && inventoryReport.getInventoryListingFirstRep().getItemFirstRep().getItem().getReference() != null
+                && inventoryReport.getInventoryListingFirstRep().getItemFirstRep().getItem().getReference().getIdentifier() != null) {
+
+            stockRecon.setProductVariantId(inventoryReport.getInventoryListingFirstRep()
+                    .getItemFirstRep()
+                    .getItem()
+                    .getReference()
+                    .getIdentifier()
+                    .getValue());
+        }
+
 
         // this needs change
         stockRecon.setCalculatedCount(inventoryReport.getInventoryListingFirstRep().getItemFirstRep().getQuantity().getValue().intValue());

@@ -13,6 +13,9 @@ import org.egov.common.models.product.ProductVariantResponse;
 import org.egov.common.models.product.ProductVariantSearchRequest;
 import org.egov.common.models.stock.*;
 import org.egov.fhirtransformer.common.Constants;
+import org.egov.fhirtransformer.web.controller.FhirApiController;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
@@ -44,6 +47,8 @@ public class ApiIntegrationService {
 
     @Value("${boundary.relationship.search.url}")
     private String boundaryRelationshipUrl;
+
+    private static final Logger logger = LoggerFactory.getLogger(FhirApiController.class);
 
     public URI formUri(URLParams urlParams, String url){
 
@@ -97,6 +102,10 @@ public class ApiIntegrationService {
                 entity,
                 FacilityBulkResponse.class
         );
+        if (!response.hasBody() || response.getBody() == null) {
+            logger.warn("Empty response body received from Facility service for URI: {}", uri);
+            return null;
+        }
         return response.getBody();
     }
 
@@ -113,6 +122,10 @@ public class ApiIntegrationService {
                 entity,
                 ProductVariantResponse.class
         );
+        if (!response.hasBody() || response.getBody() == null) {
+            logger.warn("Empty response body received from ProductVariant service for URI: {}", uri);
+            return null;
+        }
         return response.getBody();
     }
 
@@ -129,6 +142,11 @@ public class ApiIntegrationService {
                 entity,
                 StockBulkResponse.class
         );
+
+        if (!response.hasBody() || response.getBody() == null) {
+            logger.warn("Empty response body received from Stock service for URI: {}", uri);
+            return null;
+        }
         return response.getBody();
     }
 
@@ -145,6 +163,10 @@ public class ApiIntegrationService {
                 entity,
                 StockReconciliationBulkResponse.class
         );
+        if (!response.hasBody() || response.getBody() == null) {
+            logger.warn("Empty response body received from StockReconciliation service for URI: {}", uri);
+            return null;
+        }
         return response.getBody();
     }
 
@@ -159,6 +181,11 @@ public class ApiIntegrationService {
                 entity,
                 BoundarySearchResponse.class
         );
+
+        if (!response.hasBody() || response.getBody() == null) {
+            logger.warn("Empty response body received from Boundary service for URI: {}", uri);
+            return null;
+        }
         return response.getBody();
     }
 
