@@ -29,7 +29,7 @@ public class DIGITHCMStockMapper {
         supplyDelivery.addIdentifier(identifier);
 
         Long dateOfEntry = stock.getDateOfEntry();
-        DateType dateOfEntryDt = (dateOfEntry != null) ? new DateType(String.valueOf(dateOfEntry)) : null;
+        DateType dateOfEntryDt = (dateOfEntry != null) ? new DateType(new Date(dateOfEntry)) : null;
         supplyDelivery.setOccurrence(dateOfEntryDt);
 
         SupplyDelivery.SupplyDeliverySuppliedItemComponent suppliedItemComponent =

@@ -80,14 +80,14 @@ public class ApiIntegrationService {
 
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(url);
 
-        if (criteria.getTenantId() != null) {
-            builder.queryParam("tenantId", criteria.getTenantId());
+        if (hasText(criteria.getTenantId())) {
+            builder.queryParam("tenantId", criteria.getTenantId().trim());
         }
-        if (criteria.getBoundaryType() != null) {
-            builder.queryParam("boundaryType", criteria.getBoundaryType());
+        if (hasText(criteria.getBoundaryType())) {
+            builder.queryParam("boundaryType", criteria.getBoundaryType().trim());
         }
-        if (criteria.getHierarchyType() != null) {
-            builder.queryParam("hierarchyType", criteria.getHierarchyType());
+        if (hasText(criteria.getHierarchyType())) {
+            builder.queryParam("hierarchyType", criteria.getHierarchyType().trim());
         }
         if (criteria.getIncludeChildren() != null) {
             builder.queryParam("includeChildren", criteria.getIncludeChildren());
@@ -98,8 +98,18 @@ public class ApiIntegrationService {
         if (criteria.getCodes() != null && !criteria.getCodes().isEmpty()) {
             builder.queryParam("codes", criteria.getCodes());
         }
-
         return builder.build().toUri();
+    }
+
+    /**
+     * Checks whether the given string contains non-whitespace text.
+     *
+     * @param value string to check; may be {@code null}
+     * @return {@code true} if the string is not {@code null} and contains
+     *         at least one non-whitespace character, otherwise {@code false}
+     */
+    private static boolean hasText(String value) {
+        return value != null && !value.trim().isEmpty();
     }
 
     /**

@@ -73,4 +73,5 @@ public class Constants {
     public static final String PV_IDENTIFIER_VALUE = "00012345600012";
     public static final String RESPONSIBLE_ORGANIZATION = "FDC Limited";
     public static final String LANGUAGE_NAME = "Bednet bale";
+    public static final Long EXPIRY_DATE = 1798751999000L;
 }

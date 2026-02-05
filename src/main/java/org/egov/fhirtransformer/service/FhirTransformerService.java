@@ -37,9 +37,9 @@ public class FhirTransformerService {
 
     @Autowired
     private CustomFHIRValidator validator;
-    
 
     private final FhirContext ctx = FhirContext.forR5();
+
 
     /**
      * Validates a FHIR JSON payload against configured FHIR profiles.

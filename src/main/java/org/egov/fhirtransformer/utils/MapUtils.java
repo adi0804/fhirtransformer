@@ -24,7 +24,7 @@ public final class MapUtils {
      */
     public static Long getLong(Map<String, Object> row, String key) {
         Object value = row.get(key);
-        return value != null ? (Long) value : null;
+        return value instanceof Long ? (Long) value : null;
     }
 
     /**

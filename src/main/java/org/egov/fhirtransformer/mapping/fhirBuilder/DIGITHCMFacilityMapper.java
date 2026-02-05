@@ -107,9 +107,12 @@ public class DIGITHCMFacilityMapper {
             org.egov.common.models.facility.Address facilityAddress = new org.egov.common.models.facility.Address();
             if (!location.getAddress().getLine().isEmpty()) {
                 List<StringType> lines = location.getAddress().getLine();
-                if (!lines.isEmpty()) facilityAddress.setBuildingName(lines.get(0).getValue());
-                if (lines.size() >= 2) facilityAddress.setAddressLine1(lines.get(1).getValue());
-                if (lines.size() >= 3) facilityAddress.setAddressLine2(lines.get(2).getValue());
+                if (!lines.isEmpty() && lines.get(0).getValue() != null)
+                    facilityAddress.setBuildingName(lines.get(0).getValue());
+                if (lines.size() >= 2 && lines.get(1).getValue() != null)
+                    facilityAddress.setAddressLine1(lines.get(1).getValue());
+                if (lines.size() >= 3 && lines.get(2).getValue() != null)
+                    facilityAddress.setAddressLine2(lines.get(2).getValue());
 
             }
             facilityAddress.setCity(location.getAddress().getCity());

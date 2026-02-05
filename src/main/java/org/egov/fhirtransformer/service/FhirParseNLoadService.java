@@ -150,6 +150,4 @@ public class FhirParseNLoadService {
 
         return entityResults;
     }
-
-
 }

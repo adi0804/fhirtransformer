@@ -101,7 +101,7 @@ public class FhirApiController {
     ) {
         FacilityBulkResponse response = diService.fetchAllFacilities(urlParams, request);
         if (response == null || response.getFacilities() == null)
-            return ResponseEntity.ok("No facilities found");
+            return ResponseEntity.noContent().build();
         Integer totalCount = response.getTotalCount() != null
                 ? response.getTotalCount().intValue() : 0;
         String facilities = ftService.convertFacilitiesToFHIR(response.getFacilities(), urlParams, totalCount);
@@ -121,7 +121,7 @@ public class FhirApiController {
     ) {
         ProductVariantResponse response = diService.fetchAllProductVariants(urlParams, request);
         if (response == null || response.getProductVariant() == null)
-            return ResponseEntity.ok("No facilities found.");
+            return ResponseEntity.noContent().build();
         String productVariants = ftService.convertProductVariantsToFHIR(response.getProductVariant(), urlParams, 10);
         return ResponseEntity.ok(productVariants);
     }
@@ -139,7 +139,7 @@ public class FhirApiController {
 
         StockBulkResponse response = diService.fetchAllStocks(urlParams, stockRequest);
         if (response.getStock() == null)
-            return ResponseEntity.ok("No stock found");
+            return ResponseEntity.noContent().build();
 
         Integer totalCount = response.getTotalCount() != null
                 ? response.getTotalCount().intValue() : 0;
@@ -161,7 +161,7 @@ public class FhirApiController {
 
         StockReconciliationBulkResponse response = diService.fetchAllStockReconciliation(urlParams, stockReconciliationSearchRequest);
         if (response == null || response.getStockReconciliation() == null)
-            return ResponseEntity.ok("No Stock Reconciliation found");
+            return ResponseEntity.noContent().build();
 
         Integer totalCount = response.getTotalCount() != null
                 ? response.getTotalCount().intValue() : 0;

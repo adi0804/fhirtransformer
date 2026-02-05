@@ -104,7 +104,7 @@ public class DIGITHCMProductVariantMapper {
         Date lastModified = (lastModifiedMillis != null) ? new Date(lastModifiedMillis) : null;
 
         Long expiryDateMillis = productVariant.getAuditDetails().getLastModifiedTime();
-        Date expiryDate = (expiryDateMillis != null) ? new Date(expiryDateMillis) : null;
+        Date expiryDate = (expiryDateMillis != null) ? new Date(Constants.EXPIRY_DATE) : null;
 
         inventoryItem.setId(productVariant.getId());
         inventoryItem.setStatus(InventoryItem.InventoryItemStatusCodes.ACTIVE);

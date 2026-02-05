@@ -19,7 +19,6 @@ import org.hl7.fhir.r5.model.*;
 public class DIGITHCMBoundaryMapper {
 
     /**
-     *
      * @param enrichedBoundary
      * @param parentLocation
      * @return
