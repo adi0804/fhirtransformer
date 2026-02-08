@@ -62,10 +62,11 @@ public class Constants {
     public static final String PRODUCT_VARIANT_API_PATH= "/fetchAllProductVariants";
 
     public static final String TENANT_ID = "mz";
+    public static final String HIERARCHY_TYPE = "PERFORMAN";
+    public static final boolean INCLUDE_CHILDREN = false;
     public static final String NEW_IDS = "newIDs";
     public static final String EXISTING_IDS = "existingIDs";
     public static final String TOTAL_PROCESSED = "totalProcessed";
-    public static final String HIERARCHY_TYPE = "PERFORMAN";
     public static final String PV_CATEGORY = "Bednet";
     public static final String BALE_UNIT = "bale";
     public static final String UNIT_QUANTITY = "10";

@@ -1,9 +1,6 @@
 package org.egov.fhirtransformer.mapping.requestBuilder;
 
-import digit.web.models.BoundaryRelation;
-import digit.web.models.BoundaryRelationshipRequest;
-import digit.web.models.BoundaryRelationshipSearchCriteria;
-import digit.web.models.BoundarySearchResponse;
+import digit.web.models.*;
 import org.egov.fhirtransformer.common.Constants;
 import org.egov.fhirtransformer.service.ApiIntegrationService;
 import org.egov.fhirtransformer.utils.BundleBuilder;
@@ -45,7 +42,6 @@ public class LocationToBoundaryService {
             List<String> idList = new ArrayList<>(boundaryRelationMap.keySet());
             if (!idList.isEmpty()) {
                 HashMap<String, List<String>> newAndExistingIdsMap = checkExistingBoundaries(idList);
-                //call create or update based on existing or new stocks
                 callCreateOrUpdateBoundaries(newAndExistingIdsMap, boundaryRelationMap);
                 results.put(Constants.TOTAL_PROCESSED, boundaryRelationMap.size());
                 results = BundleBuilder.fetchMetrics(results, newAndExistingIdsMap);
@@ -91,22 +87,27 @@ public class LocationToBoundaryService {
 
         HashMap<String,List<String>> newandexistingids = new HashMap<>();
         try{
-            for(String id : idList){
-                BoundaryRelationshipSearchCriteria criteria = new BoundaryRelationshipSearchCriteria();
-                criteria.setCodes(List.of(id));
-                criteria.setTenantId(Constants.TENANT_ID);
-                BoundarySearchResponse boundarySearchResponse = apiIntegrationService.fetchAllBoundaries(criteria, apiIntegrationService.formRequestInfo());
-                if(!boundarySearchResponse.getTenantBoundary().isEmpty()){
-                    List<String> existingIds = new ArrayList<>();
-                    existingIds.add(id);
-                    newandexistingids.put(Constants.EXISTING_IDS, existingIds);
+            BoundaryRelationshipSearchCriteria criteria = new BoundaryRelationshipSearchCriteria();
+            criteria.setCodes(idList);
+            criteria.setTenantId(Constants.TENANT_ID);
+            criteria.setHierarchyType(Constants.HIERARCHY_TYPE);
+            criteria.setIncludeChildren(Constants.INCLUDE_CHILDREN);
+            BoundarySearchResponse boundarySearchResponse = apiIntegrationService.fetchAllBoundaries(criteria, apiIntegrationService.formRequestInfo());
+            List<String> existingIds = new ArrayList<>();
+            if (!boundarySearchResponse.getTenantBoundary().isEmpty()) {
+                for (EnrichedBoundary boundary : boundarySearchResponse.getTenantBoundary().get(0).getBoundary()) {
+                    extractBoundaryCodes(boundary, existingIds);
                 }
-                else{
-                    List<String> newIds = new ArrayList<>();
+                System.out.println(existingIds);
+                newandexistingids.put(Constants.EXISTING_IDS, existingIds);
+            }
+            List<String> newIds = new ArrayList<>();
+            for (String id : idList) {
+                if (!existingIds.contains(id)) {
                     newIds.add(id);
-                    newandexistingids.put(Constants.NEW_IDS, newIds);
                 }
             }
+            newandexistingids.put(Constants.NEW_IDS, newIds);
             System.out.println(newandexistingids);
         } catch (Exception e){
             throw new Exception("Error in checkExistingFacilities: " + e.getMessage());
@@ -121,7 +122,6 @@ public class LocationToBoundaryService {
      * @throws Exception if API invocation for create or update fails
      */
     public void callCreateOrUpdateBoundaries(HashMap<String,List<String>> newAndExistingIds, HashMap<String, BoundaryRelation> boundaryRelationMap) throws Exception {
-        //Create StockBulkRequest for new stocks
         try{
             List<BoundaryRelation> newIds = new ArrayList<>();
             List<BoundaryRelation> existingIds = new ArrayList<>();
@@ -150,4 +150,14 @@ public class LocationToBoundaryService {
             throw new Exception("Error in callCreateOrUpdate Boundary API: " + e.getMessage());
         }
     }
+
+    private void extractBoundaryCodes(EnrichedBoundary boundary, List<String> codes) {
+        codes.add(boundary.getCode());
+        if (boundary.getChildren() != null && !boundary.getChildren().isEmpty()) {
+            for (EnrichedBoundary child : boundary.getChildren()) {
+                extractBoundaryCodes(child, codes);
+            }
+        }
+    }
+
 }
