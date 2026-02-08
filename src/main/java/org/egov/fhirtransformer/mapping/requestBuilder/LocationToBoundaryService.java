@@ -3,13 +3,11 @@ package org.egov.fhirtransformer.mapping.requestBuilder;
 import digit.web.models.*;
 import org.egov.fhirtransformer.common.Constants;
 import org.egov.fhirtransformer.service.ApiIntegrationService;
-import org.egov.fhirtransformer.utils.BundleBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
@@ -22,6 +20,9 @@ public class LocationToBoundaryService {
 
     @Autowired
     private ApiIntegrationService apiIntegrationService;
+
+    @Autowired
+    private GenericCreateOrUpdateService genericCreateOrUpdateService;
 
     @Value("${boundary.create.url}")
     private String boundaryCreateUrl;
@@ -37,19 +38,14 @@ public class LocationToBoundaryService {
      * @throws Exception if transformation or API invocation fails
      */
     public HashMap<String, Integer> transformLocationToBoundary(HashMap<String, BoundaryRelation> boundaryRelationMap) throws Exception {
-        HashMap<String, Integer> results = new HashMap<>();
-        try{
-            List<String> idList = new ArrayList<>(boundaryRelationMap.keySet());
-            if (!idList.isEmpty()) {
-                HashMap<String, List<String>> newAndExistingIdsMap = checkExistingBoundaries(idList);
-                callCreateOrUpdateBoundaries(newAndExistingIdsMap, boundaryRelationMap);
-                results.put(Constants.TOTAL_PROCESSED, boundaryRelationMap.size());
-                results = BundleBuilder.fetchMetrics(results, newAndExistingIdsMap);
-            }
-        } catch (Exception e){
-            throw new Exception("Error in transformLocationToBoundary: " + e.getMessage());
-        }
-        return results;
+
+        return genericCreateOrUpdateService.process(boundaryRelationMap,
+                this::fetchExistingBoundaryIds,
+                this::createBoundaries,
+                this::updateBoundaries,
+                boundaryCreateUrl,
+                boundaryUpdateUrl,
+                "Error in transformLocationToBoundary");
     }
 
     /**
@@ -78,14 +74,9 @@ public class LocationToBoundaryService {
     }
 
     /**
-     * Identifies existing and new boundary IDs by querying the Boundary service.
-     * @param idList list of boundary IDs to check; must not be {@code null}
-     * @return map of new and existing boundary IDs
-     * @throws Exception if the search API invocation fails
+     * Adapter: fetch existing boundary codes (flat list) by calling the boundary search API and extracting codes recursively.
      */
-    public HashMap<String,List<String>> checkExistingBoundaries(List<String> idList) throws Exception {
-
-        HashMap<String,List<String>> newandexistingids = new HashMap<>();
+    public List<String> fetchExistingBoundaryIds(List<String> idList) throws Exception {
         try{
             BoundaryRelationshipSearchCriteria criteria = new BoundaryRelationshipSearchCriteria();
             criteria.setCodes(idList);
@@ -98,56 +89,44 @@ public class LocationToBoundaryService {
                 for (EnrichedBoundary boundary : boundarySearchResponse.getTenantBoundary().get(0).getBoundary()) {
                     extractBoundaryCodes(boundary, existingIds);
                 }
-                System.out.println(existingIds);
-                newandexistingids.put(Constants.EXISTING_IDS, existingIds);
             }
-            List<String> newIds = new ArrayList<>();
-            for (String id : idList) {
-                if (!existingIds.contains(id)) {
-                    newIds.add(id);
-                }
-            }
-            newandexistingids.put(Constants.NEW_IDS, newIds);
-            System.out.println(newandexistingids);
+            return existingIds;
         } catch (Exception e){
-            throw new Exception("Error in checkExistingFacilities: " + e.getMessage());
+            throw new Exception("Error in fetchExistingBoundaries: " + e.getMessage());
         }
-        return newandexistingids;
     }
 
     /**
-     * Creates or updates BoundaryRelation records based on their existence.
-     * @param newAndExistingIds map containing new and existing boundary IDs
-     * @param boundaryRelationMap map of boundary ID to BoundaryRelation data
-     * @throws Exception if API invocation for create or update fails
+     * Adapter: create boundaries by iterating and sending single BoundaryRelationshipRequest per item (keeps previous behavior).
      */
-    public void callCreateOrUpdateBoundaries(HashMap<String,List<String>> newAndExistingIds, HashMap<String, BoundaryRelation> boundaryRelationMap) throws Exception {
+    public void createBoundaries(List<BoundaryRelation> toCreate, String createUrl) throws Exception {
         try{
-            List<BoundaryRelation> newIds = new ArrayList<>();
-            List<BoundaryRelation> existingIds = new ArrayList<>();
-
-            if (newAndExistingIds.containsKey(Constants.NEW_IDS)) {
-                for (String id : newAndExistingIds.get(Constants.NEW_IDS)) {
-                    newIds.add(boundaryRelationMap.get(id));
-                    BoundaryRelationshipRequest boundaryRelationshipRequest = new BoundaryRelationshipRequest();
-                    boundaryRelationshipRequest.setRequestInfo(apiIntegrationService.formRequestInfo());
-                    boundaryRelationshipRequest.setBoundaryRelationship(boundaryRelationMap.get(id));
-                    //Call create API
-                    apiIntegrationService.sendRequestToAPI(boundaryRelationshipRequest, boundaryCreateUrl);
-                }
-            }
-            if (newAndExistingIds.containsKey(Constants.EXISTING_IDS)) {
-                for (String id : newAndExistingIds.get(Constants.EXISTING_IDS)) {
-                    existingIds.add(boundaryRelationMap.get(id));
-                    BoundaryRelationshipRequest boundaryRelationshipRequest = new BoundaryRelationshipRequest();
-                    boundaryRelationshipRequest.setRequestInfo(apiIntegrationService.formRequestInfo());
-                    boundaryRelationshipRequest.setBoundaryRelationship(boundaryRelationMap.get(id));
-                    //Call create API
-                    apiIntegrationService.sendRequestToAPI(boundaryRelationshipRequest, boundaryUpdateUrl);
-                }
+            if (toCreate == null || toCreate.isEmpty()) return;
+            for (BoundaryRelation br : toCreate) {
+                BoundaryRelationshipRequest boundaryRelationshipRequest = new BoundaryRelationshipRequest();
+                boundaryRelationshipRequest.setRequestInfo(apiIntegrationService.formRequestInfo());
+                boundaryRelationshipRequest.setBoundaryRelationship(br);
+                apiIntegrationService.sendRequestToAPI(boundaryRelationshipRequest, createUrl);
             }
         } catch (Exception e) {
-            throw new Exception("Error in callCreateOrUpdate Boundary API: " + e.getMessage());
+            throw new Exception("Error in createBoundaries: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Adapter: update boundaries by iterating and sending single BoundaryRelationshipRequest per item.
+     */
+    public void updateBoundaries(List<BoundaryRelation> toUpdate, String updateUrl) throws Exception {
+        try{
+            if (toUpdate == null || toUpdate.isEmpty()) return;
+            for (BoundaryRelation br : toUpdate) {
+                BoundaryRelationshipRequest boundaryRelationshipRequest = new BoundaryRelationshipRequest();
+                boundaryRelationshipRequest.setRequestInfo(apiIntegrationService.formRequestInfo());
+                boundaryRelationshipRequest.setBoundaryRelationship(br);
+                apiIntegrationService.sendRequestToAPI(boundaryRelationshipRequest, updateUrl);
+            }
+        } catch (Exception e) {
+            throw new Exception("Error in updateBoundaries: " + e.getMessage());
         }
     }
 
