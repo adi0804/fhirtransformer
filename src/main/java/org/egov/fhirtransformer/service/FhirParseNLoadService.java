@@ -35,7 +35,8 @@ public class FhirParseNLoadService {
 
     private static final Logger logger = LoggerFactory.getLogger(FhirParseNLoadService.class);
 
-    private final FhirContext ctx = FhirContext.forR5();
+    @Autowired
+    private FhirContext ctx;
 
     @Autowired
     private ApiIntegrationService apiIntegrationService;
@@ -58,6 +59,15 @@ public class FhirParseNLoadService {
     @Autowired
     private KafkaProducerService kafkaService;
 
+    // Helper holder for entity maps extracted from a bundle
+    private static class EntityMaps {
+        public final HashMap<String, Stock> supplyDeliveryMap = new HashMap<>();
+        public final HashMap<String, Facility> facilityMap = new HashMap<>();
+        public final HashMap<String, BoundaryRelation> boundaryRelationMap = new HashMap<>();
+        public final HashMap<String, StockReconciliation> stockReconciliationMap = new HashMap<>();
+        public final HashMap<String, ProductVariant> productVariantMap = new HashMap<>();
+    }
+
     /**
      * Parses a FHIR Bundle JSON and loads supported resources into DIGIT services
      * @param fhirJson FHIR Bundle payload as JSON
@@ -66,88 +76,116 @@ public class FhirParseNLoadService {
      */
     public HashMap<String, HashMap<String, Integer>> parseAndLoadFHIRResource(String fhirJson) throws Exception {
         HashMap<String, HashMap<String, Integer>> entityResults = new HashMap<>();
-        // Parse the FHIR resource
+
+        Bundle bundle = parseBundle(fhirJson);
+        if (bundle == null) return entityResults;
+        EntityMaps emaps = extractEntitiesFromBundle(bundle);
+        entityResults = processEntities(emaps);
+
+        return entityResults;
+    }
+
+    // Parse the incoming JSON into a FHIR Bundle
+    private Bundle parseBundle(String fhirJson) {
         IParser parser = ctx.newJsonParser();
-        Bundle bundle = new Bundle();
         try {
-            bundle = parser.parseResource(Bundle.class, fhirJson);
+            return parser.parseResource(Bundle.class, fhirJson);
         } catch (Exception e) {
             logger.error("Failed to parse FHIR resource: {}", e.getMessage(), e);
-            return entityResults;
+            return null;
         }
-        HashMap<String, Stock> supplyDeliveryMap = new HashMap<>();
-        HashMap<String, Facility> facilityMap = new HashMap<>();
-        HashMap<String, BoundaryRelation> boundaryRelationMap = new HashMap<>();
-        HashMap<String, StockReconciliation> stockReconciliationMap = new HashMap<>();
-        HashMap<String, ProductVariant> productVariantMap = new HashMap<>();
+    }
 
-        // Process each entry in the bundle
+    // Extract resources from bundle into typed maps; per-entry failures are reported to Kafka and skipped
+    private EntityMaps extractEntitiesFromBundle(Bundle bundle) {
+        EntityMaps emaps = new EntityMaps();
+
+        if (bundle.getEntry() == null) return emaps;
+
         for (Bundle.BundleEntryComponent entry : bundle.getEntry()) {
             try {
-                if (entry.getResource() instanceof SupplyDelivery) {
-                    SupplyDelivery supplyDelivery = (SupplyDelivery) entry.getResource();
-                    String logicalId = supplyDelivery.getIdElement().getIdPart();
-                    Stock stock = DIGITHCMStockMapper.buildStockFromSupplyDelivery(supplyDelivery);
-                    supplyDeliveryMap.put(logicalId, stock);
-                }
-                if (entry.getResource() instanceof org.hl7.fhir.r5.model.Location) {
-                    org.hl7.fhir.r5.model.Location location = (org.hl7.fhir.r5.model.Location) entry.getResource();
-                    List<String> profiles = location.getMeta().getProfile().stream()
-                            .map(p -> p.getValue())
-                            .collect(Collectors.toList());
-                    String logicalId = location.getIdElement().getIdPart();
-                    if (profiles.contains(Constants.PROFILE_DIGIT_HCM_FACILITY)){
-                        Facility facility = DIGITHCMFacilityMapper.convertFhirLocationToFacility(location);
-                        facilityMap.put(logicalId, facility);
-                    }
-                    else if (profiles.contains(Constants.PROFILE_DIGIT_HCM_BOUNDARY)) {
-                        logicalId = location.getName();
-                        BoundaryRelation boundaryRelation = DIGITHCMBoundaryMapper.convertFhirLocationToBoundaryRelation(location);
-                        boundaryRelationMap.put(logicalId, boundaryRelation);
-                    }
-                }
-                if (entry.getResource() instanceof InventoryReport inventoryReport) {
-                    String logicalId = inventoryReport.getIdElement().getIdPart();
-                    StockReconciliation stockRecon= DIGITHCMStockMapper.buildStockReconFromInventoryReport(inventoryReport);
-                    stockReconciliationMap.put(logicalId, stockRecon);
-                }
-                if (entry.getResource() instanceof InventoryItem inventoryItem) {
-                    String logicalId = inventoryItem.getIdElement().getIdPart();
-                    ProductVariant productVariant = DIGITHCMProductVariantMapper.buildProductVariantFromInventoryItem(inventoryItem);
-                    productVariantMap.put(logicalId, productVariant);
-
-                }
+                processBundleEntry(entry, emaps);
             } catch (Exception e) {
                 logger.error("Error processing entry: {}", e.getMessage(), e);
-                logger.info("Skipping entry with resource ID: {}", entry.getResource().getIdElement().getIdPart());
-                kafkaService.publishFhirResourceFailures(entry, e.getMessage());
+                try {
+                    logger.info("Skipping entry with resource ID: {}", entry.getResource().getIdElement().getIdPart());
+                    kafkaService.publishFhirResourceFailures(entry, e.getMessage());
+                } catch (Exception ex) {
+                    logger.error("Failed to publish resource failure to Kafka: {}", ex.getMessage(), ex);
+                }
             }
         }
-        //call Create supply delivery to stock service
-        logger.info("supply delivery map: {}", supplyDeliveryMap);
-        HashMap<String, Integer> stockResults = sdToStockService.transformSupplyDeliveryToStock(supplyDeliveryMap);
+        return emaps;
+    }
+
+    // Process a single bundle entry and populate the passed EntityMaps
+    private void processBundleEntry(Bundle.BundleEntryComponent entry, EntityMaps emaps) throws Exception {
+        if (entry.getResource() instanceof SupplyDelivery) {
+            SupplyDelivery supplyDelivery = (SupplyDelivery) entry.getResource();
+            String logicalId = supplyDelivery.getIdElement().getIdPart();
+            Stock stock = DIGITHCMStockMapper.buildStockFromSupplyDelivery(supplyDelivery);
+            emaps.supplyDeliveryMap.put(logicalId, stock);
+            return;
+        }
+
+        if (entry.getResource() instanceof org.hl7.fhir.r5.model.Location) {
+            org.hl7.fhir.r5.model.Location location = (org.hl7.fhir.r5.model.Location) entry.getResource();
+            List<String> profiles = location.getMeta().getProfile().stream()
+                    .map(p -> p.getValue())
+                    .collect(Collectors.toList());
+            String logicalId = location.getIdElement().getIdPart();
+            if (profiles.contains(Constants.PROFILE_DIGIT_HCM_FACILITY)){
+                Facility facility = DIGITHCMFacilityMapper.convertFhirLocationToFacility(location);
+                emaps.facilityMap.put(logicalId, facility);
+            }
+            else if (profiles.contains(Constants.PROFILE_DIGIT_HCM_BOUNDARY)) {
+                logicalId = location.getName();
+                BoundaryRelation boundaryRelation = DIGITHCMBoundaryMapper.convertFhirLocationToBoundaryRelation(location);
+                emaps.boundaryRelationMap.put(logicalId, boundaryRelation);
+            }
+            return;
+        }
+
+        if (entry.getResource() instanceof InventoryReport inventoryReport) {
+            String logicalId = inventoryReport.getIdElement().getIdPart();
+            StockReconciliation stockRecon= DIGITHCMStockMapper.buildStockReconFromInventoryReport(inventoryReport);
+            emaps.stockReconciliationMap.put(logicalId, stockRecon);
+            return;
+        }
+
+        if (entry.getResource() instanceof InventoryItem inventoryItem) {
+            String logicalId = inventoryItem.getIdElement().getIdPart();
+            ProductVariant productVariant = DIGITHCMProductVariantMapper.buildProductVariantFromInventoryItem(inventoryItem);
+            emaps.productVariantMap.put(logicalId, productVariant);
+        }
+    }
+
+    // Call downstream services to create/update entities and gather metrics
+    private HashMap<String, HashMap<String, Integer>> processEntities(EntityMaps emaps) throws Exception {
+        HashMap<String, HashMap<String, Integer>> entityResults = new HashMap<>();
+
+        logger.info("supply delivery map: {}", emaps.supplyDeliveryMap);
+        HashMap<String, Integer> stockResults = sdToStockService.transformSupplyDeliveryToStock(emaps.supplyDeliveryMap);
         entityResults.put("Stock", stockResults);
 
-        //call Create Location to facility service
-        logger.info("facility map: {}", facilityMap);
-        HashMap<String, Integer> facilityResults = locToFacilityService.transformLocationToFacility(facilityMap);
+        logger.info("facility map: {}", emaps.facilityMap);
+        HashMap<String, Integer> facilityResults = locToFacilityService.transformLocationToFacility(emaps.facilityMap);
         entityResults.put("facility", facilityResults);
 
-        //call Create boundary relation service
-        logger.info("boundary relation map: {}", boundaryRelationMap);
-        HashMap<String, Integer> boundaryResults = locToBoundaryService.transformLocationToBoundary(boundaryRelationMap);
+        logger.info("boundary relation map: {}", emaps.boundaryRelationMap);
+        HashMap<String, Integer> boundaryResults = locToBoundaryService.transformLocationToBoundary(emaps.boundaryRelationMap);
         entityResults.put("boundary", boundaryResults);
 
-        //call Create Inventory Report to stockrecon service
-        logger.info("Stock Reconciliation map: {}", stockReconciliationMap);
-        HashMap<String, Integer> stockReconResults = irToStkRecService.transformInventoryReportToStockReconciliation(stockReconciliationMap);
-        entityResults.put("Stock", stockResults);
+        logger.info("Stock Reconciliation map: {}", emaps.stockReconciliationMap);
+        HashMap<String, Integer> stockReconResults = irToStkRecService.transformInventoryReportToStockReconciliation(emaps.stockReconciliationMap);
+        // put under a descriptive key
+        entityResults.put("StockReconciliation", stockReconResults);
 
-        //call Create Inventory Item to Product Variant service
-        logger.info("Product Variant map: {}", productVariantMap);
-        HashMap<String, Integer> productVariantResults = invToProductService.transformInventoryItemToProductVariant(productVariantMap);
+        logger.info("Product Variant map: {}", emaps.productVariantMap);
+        HashMap<String, Integer> productVariantResults = invToProductService.transformInventoryItemToProductVariant(emaps.productVariantMap);
         entityResults.put("Product Variant", productVariantResults);
 
         return entityResults;
     }
+
 }

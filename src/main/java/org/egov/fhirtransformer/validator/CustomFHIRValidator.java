@@ -23,6 +23,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Objects;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -31,19 +32,16 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class CustomFHIRValidator {
-    private final FhirContext ctx = FhirContext.forR5();
-    private final FhirValidator validator;
-    private final PrePopulatedValidationSupport support = new PrePopulatedValidationSupport(ctx);
 
-    /**
-     * Initializes the FHIR validator and loads custom validation profiles.
-     *
-     * <p>Profiles, CodeSystems, and ValueSets are loaded from the
-     * {@code /profiles} classpath directory.
-     *
-     * @throws RuntimeException if profiles cannot be loaded
-     */
-    public CustomFHIRValidator() {
+    private final FhirContext ctx;
+    private final FhirValidator validator;
+    private final PrePopulatedValidationSupport support;
+
+    @Autowired
+    public CustomFHIRValidator(FhirContext ctx) {
+        this.ctx = ctx;
+        this.support = new PrePopulatedValidationSupport(ctx);
+
         loadProfiles("profiles");
 
         ValidationSupportChain chain = new ValidationSupportChain(
@@ -53,8 +51,8 @@ public class CustomFHIRValidator {
                 support
         );
         FhirInstanceValidator instanceValidator = new FhirInstanceValidator(chain);
-        validator = ctx.newValidator();
-        validator.registerValidatorModule(instanceValidator);
+        this.validator = ctx.newValidator();
+        this.validator.registerValidatorModule(instanceValidator);
     }
 
     /**

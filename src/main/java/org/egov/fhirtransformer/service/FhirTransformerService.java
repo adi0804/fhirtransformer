@@ -16,13 +16,10 @@ import org.egov.fhirtransformer.utils.BundleBuilder;
 import org.egov.fhirtransformer.validator.CustomFHIRValidator;
 import org.hl7.fhir.r5.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.egov.fhirtransformer.mapping.fhirBuilder.DIGITHCMBoundaryMapper.buildLocationFromHierarchyRelation;
@@ -35,10 +32,15 @@ import static org.egov.fhirtransformer.mapping.fhirBuilder.DIGITHCMBoundaryMappe
 public class FhirTransformerService {
 
 
-    @Autowired
-    private CustomFHIRValidator validator;
+    private final CustomFHIRValidator validator;
 
-    private final FhirContext ctx = FhirContext.forR5();
+    private final FhirContext ctx;
+
+    @Autowired
+    public FhirTransformerService(CustomFHIRValidator validator, FhirContext ctx) {
+        this.validator = validator;
+        this.ctx = ctx;
+    }
 
 
     /**
