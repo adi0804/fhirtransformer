@@ -24,7 +24,7 @@ public class KafkaProducerService {
 
     private final KafkaTemplate<String, String> kafkaTemplate;
 
-    private final FhirContext ctx = FhirContext.forR5();
+    private final FhirContext ctx;
 
     @Value("${kafka.dlq.topic}")
     private String dlqTopic;
@@ -32,8 +32,9 @@ public class KafkaProducerService {
     @Value("${kafka.failed.topic}")
     private String failedTopic;
 
-    public KafkaProducerService(KafkaTemplate<String, String> kafkaTemplate) {
+    public KafkaProducerService(KafkaTemplate<String, String> kafkaTemplate, FhirContext ctx) {
         this.kafkaTemplate = kafkaTemplate;
+        this.ctx = ctx;
     }
 
     /**
