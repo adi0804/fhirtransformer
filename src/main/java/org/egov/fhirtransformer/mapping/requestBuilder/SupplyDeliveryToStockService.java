@@ -4,14 +4,12 @@ import org.egov.common.models.core.URLParams;
 import org.egov.common.models.stock.*;
 import org.egov.fhirtransformer.common.Constants;
 import org.egov.fhirtransformer.service.ApiIntegrationService;
-import org.egov.fhirtransformer.utils.BundleBuilder;
 import org.egov.fhirtransformer.utils.MapUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
@@ -24,6 +22,9 @@ public class SupplyDeliveryToStockService {
 
     @Autowired
     private ApiIntegrationService apiIntegrationService;
+
+    @Autowired
+    private GenericCreateOrUpdateService genericCreateOrUpdateService;
 
     @Value("${stock.create.url}")
     private String stockCreateUrl;
@@ -40,34 +41,17 @@ public class SupplyDeliveryToStockService {
      */
     public HashMap<String, Integer> transformSupplyDeliveryToStock(HashMap<String, Stock> supplyDeliveryMap) throws Exception {
 
-        HashMap<String, Integer> results = new HashMap<>();
-        try{
-            List<String> stockIds = new ArrayList<>(supplyDeliveryMap.keySet());
-            if (!stockIds.isEmpty()) {
-                HashMap<String, List<String>> newAndExistingIdsMap = checkExistingStocks(stockIds);
-                //call create or update based on existing or new stocks
-                callCreateOrUpdateStocks(newAndExistingIdsMap, supplyDeliveryMap);
-
-                results.put(Constants.TOTAL_PROCESSED, supplyDeliveryMap.size());
-                results = BundleBuilder.fetchMetrics(results, newAndExistingIdsMap);
-
-            }
-        }
-        catch (Exception e){
-            throw new Exception("Error in transformSupplyDeliveryToStock: " + e.getMessage());
-        }
-        return results;
+        return genericCreateOrUpdateService.process(supplyDeliveryMap,
+                this::fetchExistingStockIds,
+                this::createStocks,
+                this::updateStocks,
+                stockCreateUrl,
+                stockUpdateUrl,
+                "Error in transformSupplyDeliveryToStock");
     }
 
-    /**
-     * Identifies existing and new Stock IDs by querying the Stock service.
-     * @param stockIds list of Stock IDs to check; must not be {@code null}
-     * @return map of new and existing Stock IDs
-     * @throws Exception if the search API invocation fails
-     */
-    public HashMap<String,List<String>> checkExistingStocks(List<String> stockIds) throws Exception {
-
-        HashMap<String,List<String>> newandexistingids = new HashMap<>();
+    // Adapter: fetch existing stock ids
+    public List<String> fetchExistingStockIds(List<String> stockIds) throws Exception {
         try{
             URLParams urlParams = apiIntegrationService.formURLParams(stockIds);
 
@@ -81,63 +65,41 @@ public class SupplyDeliveryToStockService {
             StockBulkResponse stockBulkResponse = apiIntegrationService.fetchAllStocks(urlParams, stockSearchRequest);
 
             if (stockBulkResponse.getStock() == null){
-                newandexistingids.put(Constants.NEW_IDS, stockIds);
+                return new ArrayList<>();
             }
-            else {
-                List<String> existingIds = new ArrayList<>();
-                for (Stock stock : stockBulkResponse.getStock()) {
-                    existingIds.add(stock.getId());
-                }
-                List<String> newIds = new ArrayList<>(stockIds);
-                newandexistingids = MapUtils.splitNewAndExistingIDS(newIds, existingIds);
+            List<String> existingIds = new ArrayList<>();
+            for (Stock stock : stockBulkResponse.getStock()) {
+                existingIds.add(stock.getId());
             }
-            System.out.println(newandexistingids);
+            return existingIds;
         } catch (Exception e){
-            throw new Exception("Error in checkExistingStocks: " + e.getMessage());
+            throw new Exception("Error in fetchExistingStocks: " + e.getMessage());
         }
-        return newandexistingids;
     }
 
-    /**
-     * Creates or updates Stock records based on their existence.
-     * @param newandexistingstocks map containing new and existing Stock IDs
-     * @param supplyDeliveryMap map of Stock ID to Stock data
-     * @throws Exception if API invocation for create or update fails
-     */
-    public void callCreateOrUpdateStocks(HashMap<String,List<String>> newandexistingstocks, HashMap<String, Stock> supplyDeliveryMap) throws Exception {
-        //Create StockBulkRequest for new stocks
+    // Adapter: create stocks
+    public void createStocks(List<Stock> toCreate, String createUrl) throws Exception {
         try{
-            List<Stock> newStocks = new ArrayList<>();
-            if (newandexistingstocks.containsKey(Constants.NEW_IDS)) {
-                for (String id : newandexistingstocks.get(Constants.NEW_IDS)) {
-                    newStocks.add(supplyDeliveryMap.get(id));
-                }
-                if (!newStocks.isEmpty()) {
-                    StockBulkRequest stockBulkRequest = new StockBulkRequest();
-                    stockBulkRequest.setRequestInfo(apiIntegrationService.formRequestInfo());
-                    stockBulkRequest.setStock(newStocks);
-                    //Call create API
-                    apiIntegrationService.sendRequestToAPI(stockBulkRequest, stockCreateUrl);
-                }
-            }
-
-            //Create StockBulkRequest for existing stocks
-            List<Stock> existingStocks = new ArrayList<>();
-            //handle key not found scenario
-            if (newandexistingstocks.containsKey(Constants.EXISTING_IDS)) {
-                for (String id : newandexistingstocks.get(Constants.EXISTING_IDS)) {
-                    existingStocks.add(supplyDeliveryMap.get(id));
-                }
-                if (!existingStocks.isEmpty()) {
-                    StockBulkRequest stockBulkRequest = new StockBulkRequest();
-                    stockBulkRequest.setRequestInfo(apiIntegrationService.formRequestInfo());
-                    stockBulkRequest.setStock(existingStocks);
-                    //Call update API
-                    apiIntegrationService.sendRequestToAPI(stockBulkRequest, stockUpdateUrl);
-                }
-            }
+            if (toCreate == null || toCreate.isEmpty()) return;
+            StockBulkRequest stockBulkRequest = new StockBulkRequest();
+            stockBulkRequest.setRequestInfo(apiIntegrationService.formRequestInfo());
+            stockBulkRequest.setStock(toCreate);
+            apiIntegrationService.sendRequestToAPI(stockBulkRequest, createUrl);
         } catch (Exception e) {
-            throw new Exception("Error in callCreateOrUpdate Stocks: " + e.getMessage());
+            throw new Exception("Error in createStocks: " + e.getMessage());
+        }
+    }
+
+    // Adapter: update stocks
+    public void updateStocks(List<Stock> toUpdate, String updateUrl) throws Exception {
+        try{
+            if (toUpdate == null || toUpdate.isEmpty()) return;
+            StockBulkRequest stockBulkRequest = new StockBulkRequest();
+            stockBulkRequest.setRequestInfo(apiIntegrationService.formRequestInfo());
+            stockBulkRequest.setStock(toUpdate);
+            apiIntegrationService.sendRequestToAPI(stockBulkRequest, updateUrl);
+        } catch (Exception e) {
+            throw new Exception("Error in updateStocks: " + e.getMessage());
         }
     }
 }

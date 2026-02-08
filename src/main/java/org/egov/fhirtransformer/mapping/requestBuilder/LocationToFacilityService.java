@@ -4,14 +4,12 @@ import org.egov.common.models.core.URLParams;
 import org.egov.common.models.facility.*;
 import org.egov.fhirtransformer.common.Constants;
 import org.egov.fhirtransformer.service.ApiIntegrationService;
-import org.egov.fhirtransformer.utils.BundleBuilder;
 import org.egov.fhirtransformer.utils.MapUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
@@ -24,6 +22,9 @@ public class LocationToFacilityService {
 
     @Autowired
     private ApiIntegrationService apiIntegrationService;
+
+    @Autowired
+    private GenericCreateOrUpdateService genericCreateOrUpdateService;
 
     @Value("${facility.create.url}")
     private String facilityCreateUrl;
@@ -39,34 +40,18 @@ public class LocationToFacilityService {
      * @throws Exception if transformation or API invocation fails
      */
     public HashMap<String, Integer> transformLocationToFacility(HashMap<String, Facility> facilityMap) throws Exception {
-        HashMap<String, Integer> results = new HashMap<>();
-        try{
-            List<String> idList = new ArrayList<>(facilityMap.keySet());
-            if (!idList.isEmpty()) {
-                HashMap<String, List<String>> newAndExistingIdsMap = checkExistingFacilities(idList);
-                //call create or update based on existing or new stocks
-                callCreateOrUpdateFacilities(newAndExistingIdsMap, facilityMap);
 
-                results.put(Constants.TOTAL_PROCESSED, facilityMap.size());
-                results = BundleBuilder.fetchMetrics(results, newAndExistingIdsMap);
-
-            }
-        }
-        catch (Exception e){
-            throw new Exception("Error in transformLocationToFacility: " + e.getMessage());
-        }
-        return results;
+        return genericCreateOrUpdateService.process(facilityMap,
+                this::fetchExistingFacilityIds,
+                this::createFacilities,
+                this::updateFacilities,
+                facilityCreateUrl,
+                facilityUpdateUrl,
+                "Error in transformLocationToFacility");
     }
 
-    /**
-     * Identifies existing and new Facility IDs by querying the Facility service.
-     * @param idList list of Facility IDs to check; must not be {@code null}
-     * @return map of new and existing Facility IDs
-     * @throws Exception if the search API invocation fails
-     */
-    public HashMap<String,List<String>> checkExistingFacilities(List<String> idList) throws Exception {
-
-        HashMap<String,List<String>> newandexistingids = new HashMap<>();
+    // Adapter: fetch existing facility ids
+    public List<String> fetchExistingFacilityIds(List<String> idList) throws Exception {
         try{
             URLParams urlParams = apiIntegrationService.formURLParams(idList);
 
@@ -80,61 +65,41 @@ public class LocationToFacilityService {
             FacilityBulkResponse facilityBulkResponse = apiIntegrationService.fetchAllFacilities(urlParams, facilitySearchRequest);
 
             if (facilityBulkResponse.getFacilities() == null){
-                newandexistingids.put(Constants.NEW_IDS, idList);
+                return new ArrayList<>();
             }
-            else {
-                List<String> existingIds = new ArrayList<>();
-                for (Facility facility : facilityBulkResponse.getFacilities()) {
-                    existingIds.add(facility.getId());
-                }
-                List<String> newIds = new ArrayList<>(idList);
-                newandexistingids = MapUtils.splitNewAndExistingIDS(newIds, existingIds);
+            List<String> existingIds = new ArrayList<>();
+            for (Facility facility : facilityBulkResponse.getFacilities()) {
+                existingIds.add(facility.getId());
             }
-            System.out.println(newandexistingids);
+            return existingIds;
         } catch (Exception e){
-            throw new Exception("Error in checkExistingFacilities: " + e.getMessage());
+            throw new Exception("Error in fetchExistingFacilities: " + e.getMessage());
         }
-        return newandexistingids;
     }
 
-    /**
-     * Creates or updates Facility records based on their existence.
-     * @param newandexistingskeys map containing new and existing Facility IDs
-     * @param facilityMap map of Facility ID to Facility data
-     * @throws Exception if API invocation for create or update fails
-     */
-    public void callCreateOrUpdateFacilities(HashMap<String,List<String>> newandexistingskeys, HashMap<String, Facility> facilityMap) throws Exception {
-        //Create StockBulkRequest for new stocks
+    // Adapter: create facilities
+    public void createFacilities(List<Facility> toCreate, String createUrl) throws Exception {
         try{
-            List<Facility> newIds = new ArrayList<>();
-            if (newandexistingskeys.containsKey(Constants.NEW_IDS)) {
-                for (String id : newandexistingskeys.get(Constants.NEW_IDS)) {
-                    newIds.add(facilityMap.get(id));
-                }
-                if (!newIds.isEmpty()) {
-                    FacilityBulkRequest facilityBulkRequest = new FacilityBulkRequest();
-                    facilityBulkRequest.setRequestInfo(apiIntegrationService.formRequestInfo());
-                    facilityBulkRequest.setFacilities(newIds);
-                    //Call create API
-                    apiIntegrationService.sendRequestToAPI(facilityBulkRequest, facilityCreateUrl);
-                }
-            }
-            List<Facility> existingIds = new ArrayList<>();
-            //handle key not found scenario
-            if (newandexistingskeys.containsKey(Constants.EXISTING_IDS)) {
-                for (String id : newandexistingskeys.get(Constants.EXISTING_IDS)) {
-                    existingIds.add(facilityMap.get(id));
-                }
-                if (!existingIds.isEmpty()) {
-                    FacilityBulkRequest facilityBulkRequest = new FacilityBulkRequest();
-                    facilityBulkRequest.setRequestInfo(apiIntegrationService.formRequestInfo());
-                    facilityBulkRequest.setFacilities(existingIds);
-                    //Call create API
-                    apiIntegrationService.sendRequestToAPI(facilityBulkRequest, facilityUpdateUrl);
-                }
-            }
+            if (toCreate == null || toCreate.isEmpty()) return;
+            FacilityBulkRequest facilityBulkRequest = new FacilityBulkRequest();
+            facilityBulkRequest.setRequestInfo(apiIntegrationService.formRequestInfo());
+            facilityBulkRequest.setFacilities(toCreate);
+            apiIntegrationService.sendRequestToAPI(facilityBulkRequest, createUrl);
         } catch (Exception e) {
-            throw new Exception("Error in callCreateOrUpdateFacilities: " + e.getMessage());
+            throw new Exception("Error in createFacilities: " + e.getMessage());
+        }
+    }
+
+    // Adapter: update facilities
+    public void updateFacilities(List<Facility> toUpdate, String updateUrl) throws Exception {
+        try{
+            if (toUpdate == null || toUpdate.isEmpty()) return;
+            FacilityBulkRequest facilityBulkRequest = new FacilityBulkRequest();
+            facilityBulkRequest.setRequestInfo(apiIntegrationService.formRequestInfo());
+            facilityBulkRequest.setFacilities(toUpdate);
+            apiIntegrationService.sendRequestToAPI(facilityBulkRequest, updateUrl);
+        } catch (Exception e) {
+            throw new Exception("Error in updateFacilities: " + e.getMessage());
         }
     }
 }
