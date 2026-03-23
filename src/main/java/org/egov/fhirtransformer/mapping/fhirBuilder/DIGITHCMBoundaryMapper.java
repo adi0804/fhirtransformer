@@ -5,7 +5,6 @@ import digit.web.models.BoundaryRelation;
 import digit.web.models.EnrichedBoundary;
 import org.egov.fhirtransformer.common.Constants;
 import org.hl7.fhir.r5.model.*;
-import org.springframework.beans.factory.annotation.Value;
 
 /**
  * Utility to map boundary master data rows to FHIR Location resources.
@@ -16,10 +15,6 @@ import org.springframework.beans.factory.annotation.Value;
  */
 
 public class DIGITHCMBoundaryMapper {
-
-
-    @Value("${app.tenant-id}")
-    private static String tenantId;
 
     /**
      * @param enrichedBoundary
@@ -57,14 +52,14 @@ public class DIGITHCMBoundaryMapper {
     }
 
     /**
-     *
      * @param location
+     * @param tenantID
      * @return
      */
-    public static BoundaryRelation convertFhirLocationToBoundaryRelation(Location location){
+    public BoundaryRelation convertFhirLocationToBoundaryRelation(Location location, String tenantID){
         BoundaryRelation boundaryRelation = new BoundaryRelation();
         //Set mandatory fields
-        boundaryRelation.setTenantId(tenantId);
+        boundaryRelation.setTenantId(tenantID);
         boundaryRelation.setHierarchyType(Constants.HIERARCHY_TYPE);
 
         //Set Boundary RelationShip ID

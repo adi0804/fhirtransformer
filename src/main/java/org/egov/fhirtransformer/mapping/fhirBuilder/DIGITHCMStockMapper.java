@@ -3,7 +3,7 @@ package org.egov.fhirtransformer.mapping.fhirBuilder;
 import org.egov.common.models.stock.*;
 import org.egov.fhirtransformer.common.Constants;
 import org.hl7.fhir.r5.model.*;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 import java.util.Date;
@@ -12,10 +12,8 @@ import java.util.Date;
  * Mapper utility for converting DIGIT Stock domain models
  * to FHIR resources and back.
  */
+@Service
 public class DIGITHCMStockMapper {
-
-    @Value("${app.tenant-id}")
-    private static String tenantId;
 
     /**
      * Creates a FHIR {@link SupplyDelivery} resource from a DIGIT {@link Stock}.
@@ -137,13 +135,15 @@ public class DIGITHCMStockMapper {
 
     /**
      * Converts a FHIR {@link SupplyDelivery} resource into a DIGIT {@link Stock}.
+     *
      * @param supplyDelivery FHIR SupplyDelivery to convert; must not be {@code null}
+     * @param tenantID
      * @return populated {@link Stock} object
      */
-    public static Stock buildStockFromSupplyDelivery(SupplyDelivery supplyDelivery) {
+    public Stock buildStockFromSupplyDelivery(SupplyDelivery supplyDelivery, String tenantID) {
         // Implementation for reverse mapping if needed
         Stock stock = new Stock();
-        stock.setTenantId(tenantId);
+        stock.setTenantId(tenantID);
 
         //Defaulting the values for mandatory fields
         stock.setSenderType(SenderReceiverType.WAREHOUSE);
@@ -233,15 +233,18 @@ public class DIGITHCMStockMapper {
 
     /**
      * Converts a FHIR {@link InventoryReport} resource into a {@link StockReconciliation}.
+     *
      * @param inventoryReport FHIR InventoryReport to convert; must not be {@code null}
+     * @param tenantID
      * @return populated {@link StockReconciliation} object
      */
 
-    public static StockReconciliation buildStockReconFromInventoryReport(InventoryReport inventoryReport) {
+    public StockReconciliation buildStockReconFromInventoryReport(InventoryReport inventoryReport, String tenantID) {
 
         StockReconciliation stockRecon = new StockReconciliation();
         //Defaulting the values for mandatory fields
-        stockRecon.setTenantId(tenantId);
+        stockRecon.setTenantId(tenantID);
+
         stockRecon.setReferenceId(UUID.randomUUID().toString());
         stockRecon.setReferenceIdType(ReferenceIdType.OTHER.toString());
 

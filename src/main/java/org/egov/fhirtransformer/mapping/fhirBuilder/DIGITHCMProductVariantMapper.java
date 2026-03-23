@@ -3,7 +3,6 @@ package org.egov.fhirtransformer.mapping.fhirBuilder;
 import org.egov.common.models.product.ProductVariant;
 import org.egov.fhirtransformer.common.Constants;
 import org.hl7.fhir.r5.model.*;
-import org.springframework.beans.factory.annotation.Value;
 import java.util.Date;
 
 /**
@@ -11,10 +10,6 @@ import java.util.Date;
  */
 
 public class DIGITHCMProductVariantMapper {
-
-
-    @Value("${app.tenant-id}")
-    private static String tenantId;
 
     /**
      * Builds a FHIR {@link InventoryItem} resource from the given {@link ProductVariant}.
@@ -118,13 +113,15 @@ public class DIGITHCMProductVariantMapper {
 
     /**
      * Converts a FHIR {@link InventoryItem} resource into a DIGIT {@link ProductVariant}.
+     *
      * @param inventoryItem FHIR InventoryItem to convert; must not be {@code null}
+     * @param tenantID
      * @return populated {@link ProductVariant} object
      */
-    public static ProductVariant buildProductVariantFromInventoryItem(InventoryItem inventoryItem) {
+    public ProductVariant buildProductVariantFromInventoryItem(InventoryItem inventoryItem, String tenantID) {
         ProductVariant productVariant = new ProductVariant();
         //Defaulting the values for mandatory fields
-        productVariant.setTenantId(tenantId);
+        productVariant.setTenantId(tenantID);
         for (Identifier identifier : inventoryItem.getIdentifier()) {
             String system = identifier.getSystem();
 

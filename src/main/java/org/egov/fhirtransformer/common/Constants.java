@@ -69,6 +69,4 @@ public class Constants {
     public static final String EXISTING_IDS = "existingIDs";
     public static final String TOTAL_PROCESSED = "totalProcessed";
     public static final Integer ROW_VERSION = 1;
-
-
 }

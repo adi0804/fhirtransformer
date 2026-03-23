@@ -18,6 +18,7 @@ import org.hl7.fhir.r5.model.InventoryItem;
 import org.hl7.fhir.r5.model.InventoryReport;
 import org.hl7.fhir.r5.model.SupplyDelivery;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import java.util.HashMap;
 import java.util.List;
@@ -57,6 +58,9 @@ public class FhirParseNLoadService {
 
     @Autowired
     private KafkaProducerService kafkaService;
+
+    @Value("${app.tenant-id}")
+    private String tenantID;
 
     // Helper holder for entity maps extracted from a bundle
     private static class EntityMaps {
@@ -119,10 +123,15 @@ public class FhirParseNLoadService {
 
     // Process a single bundle entry and populate the passed EntityMaps
     private void processBundleEntry(Bundle.BundleEntryComponent entry, EntityMaps emaps) throws Exception {
+
+        DIGITHCMStockMapper stockMapper = new DIGITHCMStockMapper();
+        DIGITHCMFacilityMapper facilityMapper = new DIGITHCMFacilityMapper();
+        DIGITHCMBoundaryMapper boundaryMapper = new DIGITHCMBoundaryMapper();
+        DIGITHCMProductVariantMapper productVariantMapper = new DIGITHCMProductVariantMapper();
         if (entry.getResource() instanceof SupplyDelivery) {
             SupplyDelivery supplyDelivery = (SupplyDelivery) entry.getResource();
             String logicalId = supplyDelivery.getIdElement().getIdPart();
-            Stock stock = DIGITHCMStockMapper.buildStockFromSupplyDelivery(supplyDelivery);
+            Stock stock = stockMapper.buildStockFromSupplyDelivery(supplyDelivery, tenantID);
             emaps.supplyDeliveryMap.put(logicalId, stock);
             return;
         }
@@ -134,27 +143,27 @@ public class FhirParseNLoadService {
                     .collect(Collectors.toList());
             String logicalId = location.getIdElement().getIdPart();
             if (profiles.contains(Constants.PROFILE_DIGIT_HCM_FACILITY)){
-                Facility facility = DIGITHCMFacilityMapper.convertFhirLocationToFacility(location);
+                Facility facility = facilityMapper.convertFhirLocationToFacility(location, tenantID);
                 emaps.facilityMap.put(logicalId, facility);
             }
             else if (profiles.contains(Constants.PROFILE_DIGIT_HCM_BOUNDARY)) {
                 logicalId = location.getName();
-                BoundaryRelation boundaryRelation = DIGITHCMBoundaryMapper.convertFhirLocationToBoundaryRelation(location);
+                BoundaryRelation boundaryRelation = boundaryMapper.convertFhirLocationToBoundaryRelation(location, tenantID);
                 emaps.boundaryRelationMap.put(logicalId, boundaryRelation);
             }
             return;
         }
-
         if (entry.getResource() instanceof InventoryReport inventoryReport) {
+
             String logicalId = inventoryReport.getIdElement().getIdPart();
-            StockReconciliation stockRecon= DIGITHCMStockMapper.buildStockReconFromInventoryReport(inventoryReport);
+            StockReconciliation stockRecon= stockMapper.buildStockReconFromInventoryReport(inventoryReport, tenantID);
             emaps.stockReconciliationMap.put(logicalId, stockRecon);
             return;
         }
 
         if (entry.getResource() instanceof InventoryItem inventoryItem) {
             String logicalId = inventoryItem.getIdElement().getIdPart();
-            ProductVariant productVariant = DIGITHCMProductVariantMapper.buildProductVariantFromInventoryItem(inventoryItem);
+            ProductVariant productVariant = productVariantMapper.buildProductVariantFromInventoryItem(inventoryItem, tenantID);
             emaps.productVariantMap.put(logicalId, productVariant);
         }
     }
