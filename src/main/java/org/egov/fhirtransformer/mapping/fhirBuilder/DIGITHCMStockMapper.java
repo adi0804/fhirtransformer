@@ -3,7 +3,6 @@ package org.egov.fhirtransformer.mapping.fhirBuilder;
 import org.egov.common.models.stock.*;
 import org.egov.fhirtransformer.common.Constants;
 import org.hl7.fhir.r5.model.*;
-import org.springframework.stereotype.Service;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 import java.util.Date;
@@ -12,7 +11,6 @@ import java.util.Date;
  * Mapper utility for converting DIGIT Stock domain models
  * to FHIR resources and back.
  */
-@Service
 public class DIGITHCMStockMapper {
 
     /**
