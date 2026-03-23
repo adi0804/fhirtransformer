@@ -73,7 +73,6 @@ public class ApiIntegrationService {
 
     /**
      * Builds a URI for boundary relationship search using provided criteria.
-     *
      * @param criteria boundary relationship search criteria
      * @param url base boundary search URL
      * @return constructed {@link URI}
@@ -234,7 +233,6 @@ public class ApiIntegrationService {
         URI uri = formBoundaryUri(boundaryRelationshipSearchCriteria, boundaryRelationshipUrl);
         Map<String, Object> body = new HashMap<>();
         body.put("RequestInfo", requestInfo);
-
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
@@ -295,7 +293,7 @@ public class ApiIntegrationService {
      */
     public RequestInfo formRequestInfo() {
         RequestInfo requestInfo = new RequestInfo();
-        requestInfo.setAuthToken("083a5b07-5db7-4e36-9424-2565ade5a7ee");
+        requestInfo.setAuthToken("");
         User user = new User();
         user.setTenantId(tenantId);
         user.setUuid(UUID.randomUUID().toString());
