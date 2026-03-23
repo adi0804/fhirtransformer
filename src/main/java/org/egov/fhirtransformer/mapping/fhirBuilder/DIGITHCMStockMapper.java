@@ -20,6 +20,7 @@ public class DIGITHCMStockMapper {
      */
     public static SupplyDelivery buildSupplyDeliveryFromStock(Stock stock) {
 
+        String facilityId = null;
         SupplyDelivery supplyDelivery = new SupplyDelivery();
         supplyDelivery.setId(stock.getId());
         Identifier identifier = new Identifier()
@@ -60,11 +61,16 @@ public class DIGITHCMStockMapper {
         supplyDelivery.addExtension(stageExt);
 
         // Set extension for Event Location
+        if (stock.getTransactionType().equals(TransactionType.RECEIVED)) {
+            facilityId = stock.getReceiverId(); //change it to facilityID once added
+        } else if (stock.getTransactionType().equals(TransactionType.DISPATCHED)) {
+            facilityId = stock.getSenderId();
+        }
         Extension eventLocationExt = new Extension().setUrl(Constants.EVENT_LOCATION_URL)
                 .setValue(new Reference()
                         .setIdentifier( new Identifier()
-                                .setSystem(Constants.FACILITY_ID_SYSTEM)));
-                                //.setValue(stock.getFacilityID())));
+                                .setSystem(Constants.FACILITY_ID_SYSTEM)
+                                .setValue(facilityId)));
         supplyDelivery.addExtension(eventLocationExt);
 
         // Set extension for Supply Delivery Sender Location

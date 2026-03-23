@@ -35,7 +35,7 @@ public class ApiIntegrationService {
     @Autowired
     private RestTemplate restTemplate;
 
-stati    @Value("${app.tenant-id}")
+    @Value("${app.tenant-id}")
     private String tenantId;
 
     @Value("${facility.search.url}")
