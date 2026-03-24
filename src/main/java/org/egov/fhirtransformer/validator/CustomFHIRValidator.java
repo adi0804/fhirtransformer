@@ -15,6 +15,7 @@ import org.hl7.fhir.r5.model.CodeSystem;
 import org.hl7.fhir.r5.model.ValueSet;
 import java.io.InputStream;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -64,6 +65,14 @@ public class CustomFHIRValidator {
      */
     private void loadProfiles(String folderName) {
         try {
+            ClassLoader classLoader = getClass().getClassLoader();
+            if (classLoader == null) {
+                throw new RuntimeException("Failed to load FHIR profiles - ClassLoader is null");
+            }
+            URL resourceCheck = classLoader.getResource(folderName);
+            if (resourceCheck == null) {
+                throw new RuntimeException("Failed to load FHIR profiles, Profile folder not found: " + folderName);
+            }
             Path folderPath = Paths.get(Objects.requireNonNull(
                     getClass().getClassLoader().getResource(folderName)).toURI());
 
