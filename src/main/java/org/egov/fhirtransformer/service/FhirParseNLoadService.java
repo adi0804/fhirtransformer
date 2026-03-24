@@ -3,6 +3,7 @@ package org.egov.fhirtransformer.service;
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.parser.IParser;
 import digit.web.models.BoundaryRelation;
+import org.egov.common.contract.request.RequestInfo;
 import org.egov.common.models.facility.Facility;
 import org.egov.common.models.product.ProductVariant;
 import org.egov.common.models.stock.*;
@@ -77,13 +78,13 @@ public class FhirParseNLoadService {
      * @return map of entity name to processing metrics
      * @throws Exception if downstream service invocation fails
      */
-    public HashMap<String, HashMap<String, Integer>> parseAndLoadFHIRResource(String fhirJson) throws Exception {
+    public HashMap<String, HashMap<String, Integer>> parseAndLoadFHIRResource(String fhirJson, RequestInfo requestInfo) throws Exception {
         HashMap<String, HashMap<String, Integer>> entityResults = new HashMap<>();
 
         Bundle bundle = parseBundle(fhirJson);
         if (bundle == null) return entityResults;
         EntityMaps emaps = extractEntitiesFromBundle(bundle);
-        entityResults = processEntities(emaps);
+        entityResults = processEntities(emaps, requestInfo);
 
         return entityResults;
     }
@@ -169,28 +170,28 @@ public class FhirParseNLoadService {
     }
 
     // Call downstream services to create/update entities and gather metrics
-    private HashMap<String, HashMap<String, Integer>> processEntities(EntityMaps emaps) throws Exception {
+    private HashMap<String, HashMap<String, Integer>> processEntities(EntityMaps emaps,RequestInfo requestInfo) throws Exception {
         HashMap<String, HashMap<String, Integer>> entityResults = new HashMap<>();
 
         logger.info("supply delivery map: {}", emaps.supplyDeliveryMap);
-        HashMap<String, Integer> stockResults = sdToStockService.transformSupplyDeliveryToStock(emaps.supplyDeliveryMap);
+        HashMap<String, Integer> stockResults = sdToStockService.transformSupplyDeliveryToStock(emaps.supplyDeliveryMap, requestInfo);
         entityResults.put("Stock", stockResults);
 
         logger.info("facility map: {}", emaps.facilityMap);
-        HashMap<String, Integer> facilityResults = locToFacilityService.transformLocationToFacility(emaps.facilityMap);
+        HashMap<String, Integer> facilityResults = locToFacilityService.transformLocationToFacility(emaps.facilityMap, requestInfo);
         entityResults.put("facility", facilityResults);
 
         logger.info("boundary relation map: {}", emaps.boundaryRelationMap);
-        HashMap<String, Integer> boundaryResults = locToBoundaryService.transformLocationToBoundary(emaps.boundaryRelationMap);
+        HashMap<String, Integer> boundaryResults = locToBoundaryService.transformLocationToBoundary(emaps.boundaryRelationMap, requestInfo);
         entityResults.put("boundary", boundaryResults);
 
         logger.info("Stock Reconciliation map: {}", emaps.stockReconciliationMap);
-        HashMap<String, Integer> stockReconResults = irToStkRecService.transformInventoryReportToStockReconciliation(emaps.stockReconciliationMap);
+        HashMap<String, Integer> stockReconResults = irToStkRecService.transformInventoryReportToStockReconciliation(emaps.stockReconciliationMap, requestInfo);
         // put under a descriptive key
         entityResults.put("StockReconciliation", stockReconResults);
 
         logger.info("Product Variant map: {}", emaps.productVariantMap);
-        HashMap<String, Integer> productVariantResults = invToProductService.transformInventoryItemToProductVariant(emaps.productVariantMap);
+        HashMap<String, Integer> productVariantResults = invToProductService.transformInventoryItemToProductVariant(emaps.productVariantMap, requestInfo);
         entityResults.put("Product Variant", productVariantResults);
 
         return entityResults;

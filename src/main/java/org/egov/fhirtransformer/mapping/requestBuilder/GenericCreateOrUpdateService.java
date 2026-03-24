@@ -1,5 +1,6 @@
 package org.egov.fhirtransformer.mapping.requestBuilder;
 
+import org.egov.common.contract.request.RequestInfo;
 import org.egov.fhirtransformer.common.Constants;
 import org.egov.fhirtransformer.utils.BundleBuilder;
 import org.egov.fhirtransformer.utils.MapUtils;
@@ -65,6 +66,7 @@ public class GenericCreateOrUpdateService {
                                                 ThrowingBiConsumer<List<T>, String> updateFn,
                                                 String createUrl,
                                                 String updateUrl,
+                                                RequestInfo requestInfo,
                                                 String errorMessage) throws Exception {
         HashMap<String, Integer> results = new HashMap<>();
         if (entityMap == null || entityMap.isEmpty()) {

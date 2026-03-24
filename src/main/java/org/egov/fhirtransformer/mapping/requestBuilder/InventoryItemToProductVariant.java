@@ -1,5 +1,6 @@
 package org.egov.fhirtransformer.mapping.requestBuilder;
 
+import org.egov.common.contract.request.RequestInfo;
 import org.egov.common.models.core.URLParams;
 import org.egov.common.models.product.*;
 import org.egov.fhirtransformer.service.ApiIntegrationService;
@@ -30,6 +31,7 @@ public class InventoryItemToProductVariant {
     @Value("${product.variant.update.url}")
     private String productVariantUpdateUrl;
 
+    private RequestInfo requestInfo;
 
     /**
      * Transforms and persists ProductVariants derived from InventoryItems.
@@ -38,8 +40,9 @@ public class InventoryItemToProductVariant {
      * @return map containing processing metrics
      * @throws Exception if transformation or API invocation fails
      */
-    public HashMap<String, Integer> transformInventoryItemToProductVariant(HashMap<String, ProductVariant> productVariantMap) throws Exception {
+    public HashMap<String, Integer> transformInventoryItemToProductVariant(HashMap<String, ProductVariant> productVariantMap, RequestInfo requestInfo) throws Exception {
 
+        this.requestInfo=requestInfo;
         // Use the generic overloaded process: provide fetchExistingIds, create and update adapters
         return genericCreateOrUpdateService.process(productVariantMap,
                 this::fetchExistingProductVariantIds,
@@ -47,6 +50,7 @@ public class InventoryItemToProductVariant {
                 this::updateProductVariants,
                 productVariantCreateUrl,
                 productVariantUpdateUrl,
+                requestInfo,
                 "Error in Transforming InventoryItem To ProductVariant");
     }
 
@@ -58,7 +62,7 @@ public class InventoryItemToProductVariant {
             productVariantSearch.setId(productVariantIds);
 
             ProductVariantSearchRequest productVariantSearchRequest = new ProductVariantSearchRequest();
-            productVariantSearchRequest.setRequestInfo(apiIntegrationService.formRequestInfo());
+            productVariantSearchRequest.setRequestInfo(this.requestInfo);
             productVariantSearchRequest.setProductVariant(productVariantSearch);
 
             ProductVariantResponse productVariantResponse = apiIntegrationService.fetchAllProductVariants(urlParams, productVariantSearchRequest);
@@ -81,7 +85,7 @@ public class InventoryItemToProductVariant {
         try{
             if (toCreate == null || toCreate.isEmpty()) return;
             ProductVariantRequest productVariantRequest = new ProductVariantRequest();
-            productVariantRequest.setRequestInfo(apiIntegrationService.formRequestInfo());
+            productVariantRequest.setRequestInfo(this.requestInfo);
             productVariantRequest.setProductVariant(toCreate);
             productVariantRequest.setApiOperation(ApiOperation.CREATE);
             apiIntegrationService.sendRequestToAPI(productVariantRequest, createUrl);
@@ -95,7 +99,7 @@ public class InventoryItemToProductVariant {
         try{
             if (toUpdate == null || toUpdate.isEmpty()) return;
             ProductVariantRequest productVariantRequest = new ProductVariantRequest();
-            productVariantRequest.setRequestInfo(apiIntegrationService.formRequestInfo());
+            productVariantRequest.setRequestInfo(this.requestInfo);
             productVariantRequest.setProductVariant(toUpdate);
             productVariantRequest.setApiOperation(ApiOperation.UPDATE);
             apiIntegrationService.sendRequestToAPI(productVariantRequest, updateUrl);

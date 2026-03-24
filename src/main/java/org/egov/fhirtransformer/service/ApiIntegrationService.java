@@ -290,20 +290,4 @@ public class ApiIntegrationService {
         return urlParams;
     }
 
-    /**
-     * Creates {@link RequestInfo} with default tenant and user metadata.
-     * @return populated {@link RequestInfo}
-     */
-    public RequestInfo formRequestInfo() {
-        if (!addRequestInfo) {
-            return null;
-        }
-        RequestInfo requestInfo = new RequestInfo();
-        requestInfo.setAuthToken("");
-        User user = new User();
-        user.setTenantId(tenantId);
-        user.setUuid(UUID.randomUUID().toString());
-        requestInfo.setUserInfo(user);
-        return requestInfo;
-    }
 }

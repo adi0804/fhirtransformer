@@ -1,6 +1,7 @@
 package org.egov.fhirtransformer.mapping.requestBuilder;
 
 import digit.web.models.*;
+import org.egov.common.contract.request.RequestInfo;
 import org.egov.fhirtransformer.common.Constants;
 import org.egov.fhirtransformer.service.ApiIntegrationService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +35,8 @@ public class LocationToBoundaryService {
     @Value("${boundary.update.url}")
     private String boundaryUpdateUrl;
 
+    private RequestInfo requestInfo;
+
     private static final Logger logger = LoggerFactory.getLogger(LocationToBoundaryService.class);
 
 
@@ -44,7 +47,8 @@ public class LocationToBoundaryService {
      * @return map containing processing metrics
      * @throws Exception if transformation or API invocation fails
      */
-    public HashMap<String, Integer> transformLocationToBoundary(HashMap<String, BoundaryRelation> boundaryRelationMap) throws Exception {
+    public HashMap<String, Integer> transformLocationToBoundary(HashMap<String, BoundaryRelation> boundaryRelationMap, RequestInfo requestInfo) throws Exception {
+        this.requestInfo = requestInfo;
 
         return genericCreateOrUpdateService.process(boundaryRelationMap,
                 this::fetchExistingBoundaryIds,
@@ -52,6 +56,7 @@ public class LocationToBoundaryService {
                 this::updateBoundaries,
                 boundaryCreateUrl,
                 boundaryUpdateUrl,
+                requestInfo,
                 "Error in transformLocationToBoundary");
     }
 
@@ -90,7 +95,7 @@ public class LocationToBoundaryService {
             criteria.setTenantId(tenantId);
             criteria.setHierarchyType(Constants.HIERARCHY_TYPE);
             criteria.setIncludeChildren(Constants.INCLUDE_CHILDREN);
-            BoundarySearchResponse boundarySearchResponse = apiIntegrationService.fetchAllBoundaries(criteria, apiIntegrationService.formRequestInfo());
+            BoundarySearchResponse boundarySearchResponse = apiIntegrationService.fetchAllBoundaries(criteria, this.requestInfo);
             List<String> existingIds = new ArrayList<>();
             if (!boundarySearchResponse.getTenantBoundary().isEmpty()) {
                 for (EnrichedBoundary boundary : boundarySearchResponse.getTenantBoundary().get(0).getBoundary()) {
@@ -111,10 +116,8 @@ public class LocationToBoundaryService {
             if (toCreate == null || toCreate.isEmpty()) return;
             for (BoundaryRelation br : toCreate) {
                 BoundaryRelationshipRequest boundaryRelationshipRequest = new BoundaryRelationshipRequest();
-                boundaryRelationshipRequest.setRequestInfo(apiIntegrationService.formRequestInfo());
+                boundaryRelationshipRequest.setRequestInfo(this.requestInfo);
                 boundaryRelationshipRequest.setBoundaryRelationship(br);
-                logger.info("boundaryRelationshipRequest" + boundaryRelationshipRequest);
-                logger.info("br" + br);
                 apiIntegrationService.sendRequestToAPI(boundaryRelationshipRequest, createUrl);
             }
         } catch (Exception e) {
@@ -130,7 +133,7 @@ public class LocationToBoundaryService {
             if (toUpdate == null || toUpdate.isEmpty()) return;
             for (BoundaryRelation br : toUpdate) {
                 BoundaryRelationshipRequest boundaryRelationshipRequest = new BoundaryRelationshipRequest();
-                boundaryRelationshipRequest.setRequestInfo(apiIntegrationService.formRequestInfo());
+                boundaryRelationshipRequest.setRequestInfo(this.requestInfo);
                 boundaryRelationshipRequest.setBoundaryRelationship(br);
                 apiIntegrationService.sendRequestToAPI(boundaryRelationshipRequest, updateUrl);
             }

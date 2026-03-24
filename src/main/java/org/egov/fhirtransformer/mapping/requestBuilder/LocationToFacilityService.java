@@ -1,5 +1,6 @@
 package org.egov.fhirtransformer.mapping.requestBuilder;
 
+import org.egov.common.contract.request.RequestInfo;
 import org.egov.common.models.core.URLParams;
 import org.egov.common.models.facility.*;
 import org.egov.fhirtransformer.service.ApiIntegrationService;
@@ -29,6 +30,8 @@ public class LocationToFacilityService {
     @Value("${facility.update.url}")
     private String facilityUpdateUrl;
 
+    private RequestInfo requestInfo;
+
     /**
      * Transforms and persists Facility records derived from Locations.
      * @param facilityMap map of Facility ID to Facility data;
@@ -36,7 +39,9 @@ public class LocationToFacilityService {
      * @return map containing processing metrics
      * @throws Exception if transformation or API invocation fails
      */
-    public HashMap<String, Integer> transformLocationToFacility(HashMap<String, Facility> facilityMap) throws Exception {
+    public HashMap<String, Integer> transformLocationToFacility(HashMap<String, Facility> facilityMap, RequestInfo requestInfo) throws Exception {
+
+        this.requestInfo = requestInfo;
 
         return genericCreateOrUpdateService.process(facilityMap,
                 this::fetchExistingFacilityIds,
@@ -44,6 +49,7 @@ public class LocationToFacilityService {
                 this::updateFacilities,
                 facilityCreateUrl,
                 facilityUpdateUrl,
+                requestInfo,
                 "Error in transformLocationToFacility");
     }
 
@@ -56,7 +62,7 @@ public class LocationToFacilityService {
             facilitySearch.setId(idList);
 
             FacilitySearchRequest facilitySearchRequest = new FacilitySearchRequest();
-            facilitySearchRequest.setRequestInfo(apiIntegrationService.formRequestInfo());
+            facilitySearchRequest.setRequestInfo(this.requestInfo);
             facilitySearchRequest.setFacility(facilitySearch);
 
             FacilityBulkResponse facilityBulkResponse = apiIntegrationService.fetchAllFacilities(urlParams, facilitySearchRequest);
@@ -79,7 +85,7 @@ public class LocationToFacilityService {
         try{
             if (toCreate == null || toCreate.isEmpty()) return;
             FacilityBulkRequest facilityBulkRequest = new FacilityBulkRequest();
-            facilityBulkRequest.setRequestInfo(apiIntegrationService.formRequestInfo());
+            facilityBulkRequest.setRequestInfo(this.requestInfo);
             facilityBulkRequest.setFacilities(toCreate);
             apiIntegrationService.sendRequestToAPI(facilityBulkRequest, createUrl);
         } catch (Exception e) {
@@ -92,7 +98,7 @@ public class LocationToFacilityService {
         try{
             if (toUpdate == null || toUpdate.isEmpty()) return;
             FacilityBulkRequest facilityBulkRequest = new FacilityBulkRequest();
-            facilityBulkRequest.setRequestInfo(apiIntegrationService.formRequestInfo());
+            facilityBulkRequest.setRequestInfo(this.requestInfo);
             facilityBulkRequest.setFacilities(toUpdate);
             apiIntegrationService.sendRequestToAPI(facilityBulkRequest, updateUrl);
         } catch (Exception e) {
