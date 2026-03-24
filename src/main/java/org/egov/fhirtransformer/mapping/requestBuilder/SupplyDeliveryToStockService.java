@@ -1,5 +1,6 @@
 package org.egov.fhirtransformer.mapping.requestBuilder;
 
+import org.egov.common.contract.request.RequestInfo;
 import org.egov.common.models.core.URLParams;
 import org.egov.common.models.stock.*;
 import org.egov.fhirtransformer.service.ApiIntegrationService;
@@ -29,6 +30,8 @@ public class SupplyDeliveryToStockService {
     @Value("${stock.update.url}")
     private String stockUpdateUrl;
 
+    private RequestInfo requestInfo;
+
     /**
      * Transforms and persists Stock records derived from SupplyDelivery resources.
      * @param supplyDeliveryMap map of Stock ID to Stock data;
@@ -36,7 +39,9 @@ public class SupplyDeliveryToStockService {
      * @return map containing processing metrics
      * @throws Exception if transformation or API invocation fails
      */
-    public HashMap<String, Integer> transformSupplyDeliveryToStock(HashMap<String, Stock> supplyDeliveryMap) throws Exception {
+    public HashMap<String, Integer> transformSupplyDeliveryToStock(HashMap<String, Stock> supplyDeliveryMap, RequestInfo requestInfo) throws Exception {
+
+        this.requestInfo = requestInfo;
 
         return genericCreateOrUpdateService.process(supplyDeliveryMap,
                 this::fetchExistingStockIds,
@@ -44,6 +49,7 @@ public class SupplyDeliveryToStockService {
                 this::updateStocks,
                 stockCreateUrl,
                 stockUpdateUrl,
+                requestInfo,
                 "Error in transformSupplyDeliveryToStock");
     }
 
@@ -56,7 +62,7 @@ public class SupplyDeliveryToStockService {
             stockSearch.setId(stockIds);
 
             StockSearchRequest stockSearchRequest = new StockSearchRequest();
-            stockSearchRequest.setRequestInfo(apiIntegrationService.formRequestInfo());
+            stockSearchRequest.setRequestInfo(this.requestInfo);
             stockSearchRequest.setStock(stockSearch);
 
             StockBulkResponse stockBulkResponse = apiIntegrationService.fetchAllStocks(urlParams, stockSearchRequest);
@@ -79,7 +85,7 @@ public class SupplyDeliveryToStockService {
         try{
             if (toCreate == null || toCreate.isEmpty()) return;
             StockBulkRequest stockBulkRequest = new StockBulkRequest();
-            stockBulkRequest.setRequestInfo(apiIntegrationService.formRequestInfo());
+            stockBulkRequest.setRequestInfo(this.requestInfo);
             stockBulkRequest.setStock(toCreate);
             apiIntegrationService.sendRequestToAPI(stockBulkRequest, createUrl);
         } catch (Exception e) {
@@ -92,7 +98,7 @@ public class SupplyDeliveryToStockService {
         try{
             if (toUpdate == null || toUpdate.isEmpty()) return;
             StockBulkRequest stockBulkRequest = new StockBulkRequest();
-            stockBulkRequest.setRequestInfo(apiIntegrationService.formRequestInfo());
+            stockBulkRequest.setRequestInfo(this.requestInfo);
             stockBulkRequest.setStock(toUpdate);
             apiIntegrationService.sendRequestToAPI(stockBulkRequest, updateUrl);
         } catch (Exception e) {

@@ -1,5 +1,6 @@
 package org.egov.fhirtransformer.mapping.requestBuilder;
 
+import org.egov.common.contract.request.RequestInfo;
 import org.egov.common.models.core.URLParams;
 import org.egov.common.models.stock.*;
 import org.egov.fhirtransformer.service.ApiIntegrationService;
@@ -29,6 +30,8 @@ public class InventoryReportToStockReconciliationService {
     @Value("${stock.recon.update.url}")
     private String stockReconUpdateUrl;
 
+    private RequestInfo requestInfo;
+
     /**
      * Transforms and persists StockReconciliation records derived from InventoryReports.
      * @param stockReconciliationMap map of StockReconciliation ID to data;
@@ -36,7 +39,9 @@ public class InventoryReportToStockReconciliationService {
      * @return map containing processing metrics
      * @throws Exception if transformation or API invocation fails
      */
-    public HashMap<String, Integer> transformInventoryReportToStockReconciliation(HashMap<String, StockReconciliation> stockReconciliationMap) throws Exception {
+    public HashMap<String, Integer> transformInventoryReportToStockReconciliation(HashMap<String, StockReconciliation> stockReconciliationMap, RequestInfo requestInfo) throws Exception {
+
+        this.requestInfo = requestInfo;
 
         return genericCreateOrUpdateService.process(stockReconciliationMap,
                 this::fetchExistingStockReconIds,
@@ -44,6 +49,7 @@ public class InventoryReportToStockReconciliationService {
                 this::updateStockRecon,
                 stockReconCreateUrl,
                 stockReconUpdateUrl,
+                requestInfo,
                 "Error in transformInventoryReportToStockReconciliation");
     }
 
@@ -56,7 +62,7 @@ public class InventoryReportToStockReconciliationService {
             stockReconciliationSearch.setId(stockReconIds);
 
             StockReconciliationSearchRequest stockReconciliationSearchRequest = new StockReconciliationSearchRequest();
-            stockReconciliationSearchRequest.setRequestInfo(apiIntegrationService.formRequestInfo());
+            stockReconciliationSearchRequest.setRequestInfo(this.requestInfo);
             stockReconciliationSearchRequest.setStockReconciliation(stockReconciliationSearch);
 
             StockReconciliationBulkResponse stockBulkReconResponse = apiIntegrationService.fetchAllStockReconciliation(urlParams, stockReconciliationSearchRequest);
@@ -78,7 +84,7 @@ public class InventoryReportToStockReconciliationService {
         try{
             if (toCreate == null || toCreate.isEmpty()) return;
             StockReconciliationBulkRequest stockReconciliationBulkRequest = new StockReconciliationBulkRequest();
-            stockReconciliationBulkRequest.setRequestInfo(apiIntegrationService.formRequestInfo());
+            stockReconciliationBulkRequest.setRequestInfo(this.requestInfo);
             stockReconciliationBulkRequest.setStockReconciliation(toCreate);
             apiIntegrationService.sendRequestToAPI(stockReconciliationBulkRequest, createUrl);
         } catch (Exception e) {
@@ -91,7 +97,7 @@ public class InventoryReportToStockReconciliationService {
         try{
             if (toUpdate == null || toUpdate.isEmpty()) return;
             StockReconciliationBulkRequest stockReconciliationBulkRequest = new StockReconciliationBulkRequest();
-            stockReconciliationBulkRequest.setRequestInfo(apiIntegrationService.formRequestInfo());
+            stockReconciliationBulkRequest.setRequestInfo(this.requestInfo);
             stockReconciliationBulkRequest.setStockReconciliation(toUpdate);
             apiIntegrationService.sendRequestToAPI(stockReconciliationBulkRequest, updateUrl);
         } catch (Exception e) {

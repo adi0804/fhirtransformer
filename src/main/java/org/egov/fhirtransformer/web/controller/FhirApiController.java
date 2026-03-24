@@ -17,6 +17,7 @@ import org.egov.fhirtransformer.service.ApiIntegrationService;
 import org.egov.fhirtransformer.service.FhirParseNLoadService;
 import org.egov.fhirtransformer.service.FhirTransformerService;
 import org.egov.fhirtransformer.repository.KafkaProducerService;
+import org.egov.fhirtransformer.utils.FhirRequestBuilder;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -199,10 +200,18 @@ public class FhirApiController {
      * @throws Exception if downstream processing fails
      */
     @PostMapping("/consumeFHIR")
-    public ResponseEntity<String> consumeFHIR(@RequestBody String fhirJson) throws Exception {
+    public ResponseEntity<String> consumeFHIR(@RequestHeader(value = "Authorization", required = false) String authToken,
+                                              @RequestBody FhirRequestBuilder fhirRequestBuilder) throws Exception {
 
         HashMap<String, HashMap<String, Integer>> response = new HashMap<>();
         try {
+            RequestInfo requestInfo = fhirRequestBuilder.getRequestInfo();
+            String fhirJson = new ObjectMapper().writeValueAsString(fhirRequestBuilder.getFhir());
+
+            if (requestInfo != null && authToken != null && !authToken.isEmpty()) {
+                requestInfo.setAuthToken(authToken);
+            }
+
             //Parse incoming FHIR JSON
             JsonNode root = new ObjectMapper().readTree(fhirJson);
             String bundleId = root.path("id").asText();
@@ -219,7 +228,7 @@ public class FhirApiController {
             }
 
             // If valid → parse and load FHIR resource
-            response = fpService.parseAndLoadFHIRResource(fhirJson);
+            response = fpService.parseAndLoadFHIRResource(fhirJson, requestInfo);
             return ResponseEntity.ok(response.toString());
         } catch (JsonProcessingException e) {
             logger.error("Failed to parse FHIR JSON :", e);
