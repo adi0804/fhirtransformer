@@ -52,6 +52,18 @@ Run:</br>
  
 
 ## Public REST endpoints (FhirApiController)
+
+http://localhost:8006/fhir-api/health - Health check endpoint for service availability
+http://localhost:8006/fhir-api/validate - Validates a FHIR JSON payload against configured FHIR profiles.
+http://localhost:8006/fhir-api/fetchAllFacilities?offset=0&limit=1&tenantId=dev - Fetches Facility data and returns it as a FHIR Location Bundle.
+http://localhost:8006/fhir-api/fetchAllProductVariants?offset=0&limit=1&tenantId=dev - Fetches ProductVariant data and returns it as a FHIR InventoryItem Bundle.
+http://localhost:8006/fhir-api/fetchAllStocks?offset=0&limit=1&tenantId=dev - Fetches Stock data and returns it as a FHIR SupplyDelivery Bundle.
+http://localhost:8006/fhir-api/fetchAllStockReconciliation?offset=0&limit=1&tenantId=dev - Fetches StockReconciliation data and returns it as a FHIR InventoryReport Bundle.
+http://localhost:8006/fhir-api/fetchAllBoundaries?offset=0&limit=1&tenantId=dev - Fetches boundary hierarchy data and returns it as a FHIR Location Bundle.
+http://localhost:8006/fhir-api/consumeFHIR - Consumes a FHIR Bundle payload and loads supported resources into DIGIT services.
+
+
+
 - GET /fhir-api/health
   - Returns a simple health message.
 - POST /fhir-api/validate
