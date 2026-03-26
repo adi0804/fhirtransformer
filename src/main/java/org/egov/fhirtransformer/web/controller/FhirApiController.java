@@ -25,7 +25,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 import digit.web.models.BoundaryRelationshipSearchCriteria;
-import java.util.HashMap;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;

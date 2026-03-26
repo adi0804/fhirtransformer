@@ -51,9 +51,6 @@ public class ApiIntegrationService {
     @Value("${boundary.relationship.search.url}")
     private String boundaryRelationshipUrl;
 
-    @Value("${app.add-request-info:false}")
-    private boolean addRequestInfo;
-
     private static final Logger logger = LoggerFactory.getLogger(FhirApiController.class);
 
     /**
